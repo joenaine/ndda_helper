@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/drug_model.dart';
 
-class DrugCard extends StatelessWidget {
+class DrugCard extends StatefulWidget {
   final Drug drug;
   final bool isSelected;
   final VoidCallback onTap;
@@ -14,13 +14,20 @@ class DrugCard extends StatelessWidget {
   });
 
   @override
+  State<DrugCard> createState() => _DrugCardState();
+}
+
+class _DrugCardState extends State<DrugCard> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isSelected ? Colors.black : Colors.white,
+        color: widget.isSelected ? Colors.black : Colors.white,
         border: Border.all(
-          color: isSelected ? Colors.black : const Color(0xFFE5E7EB),
+          color: widget.isSelected ? Colors.black : const Color(0xFFE5E7EB),
           width: 1,
         ),
         borderRadius: BorderRadius.circular(8),
@@ -32,138 +39,314 @@ class DrugCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Checkbox
-                Container(
-                  width: 20,
-                  height: 20,
-                  margin: const EdgeInsets.only(right: 16, top: 2),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Colors.white : Colors.transparent,
-                    border: Border.all(
-                      color: isSelected
-                          ? Colors.white
-                          : const Color(0xFFE5E7EB),
-                      width: 2,
+      child: Column(
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: widget.onTap,
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(8),
+                topRight: const Radius.circular(8),
+                bottomLeft: _isExpanded
+                    ? Radius.zero
+                    : const Radius.circular(8),
+                bottomRight: _isExpanded
+                    ? Radius.zero
+                    : const Radius.circular(8),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Checkbox
+                    Container(
+                      width: 20,
+                      height: 20,
+                      margin: const EdgeInsets.only(right: 16, top: 2),
+                      decoration: BoxDecoration(
+                        color: widget.isSelected
+                            ? Colors.white
+                            : Colors.transparent,
+                        border: Border.all(
+                          color: widget.isSelected
+                              ? Colors.white
+                              : const Color(0xFFE5E7EB),
+                          width: 2,
+                        ),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: widget.isSelected
+                          ? const Icon(
+                              Icons.check,
+                              size: 14,
+                              color: Colors.black,
+                            )
+                          : null,
                     ),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: isSelected
-                      ? const Icon(Icons.check, size: 14, color: Colors.black)
-                      : null,
-                ),
 
-                // Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Drug name
-                      Text(
-                        drug.name,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected ? Colors.white : Colors.black,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // ATC Info
-                      if (drug.atcName != null || drug.code != null)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Row(
-                            children: [
-                              if (drug.code != null) ...[
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? Colors.white.withOpacity(0.2)
-                                        : const Color(0xFFF9FAFB),
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? Colors.white.withOpacity(0.3)
-                                          : const Color(0xFFE5E7EB),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    drug.code!,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Colors.black,
-                                      fontFamily: 'monospace',
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                              ],
-                              if (drug.atcName != null)
-                                Expanded(
-                                  child: Text(
-                                    drug.atcName!,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: isSelected
-                                          ? Colors.white.withOpacity(0.9)
-                                          : const Color(0xFF6B7280),
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                            ],
+                    // Content
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Drug name
+                          Text(
+                            widget.drug.name,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: widget.isSelected
+                                  ? Colors.white
+                                  : Colors.black,
+                              height: 1.4,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 8),
 
-                      // Reg number and dosage form
-                      Text(
-                        '${drug.regNumber}${drug.dosageFormName != null ? ' • ${drug.dosageFormName}' : ''}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isSelected
+                          // ATC Info
+                          if (widget.drug.atcName != null ||
+                              widget.drug.code != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 6),
+                              child: Row(
+                                children: [
+                                  if (widget.drug.code != null) ...[
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: widget.isSelected
+                                            ? Colors.white.withOpacity(0.2)
+                                            : const Color(0xFFF9FAFB),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: widget.isSelected
+                                              ? Colors.white.withOpacity(0.3)
+                                              : const Color(0xFFE5E7EB),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        widget.drug.code!,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                          color: widget.isSelected
+                                              ? Colors.white
+                                              : Colors.black,
+                                          fontFamily: 'monospace',
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  if (widget.drug.atcName != null)
+                                    Expanded(
+                                      child: Text(
+                                        widget.drug.atcName!,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: widget.isSelected
+                                              ? Colors.white.withOpacity(0.9)
+                                              : const Color(0xFF6B7280),
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+
+                          // Reg number and dosage form
+                          Text(
+                            '${widget.drug.regNumber}${widget.drug.dosageFormName != null ? ' • ${widget.drug.dosageFormName}' : ''}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: widget.isSelected
+                                  ? Colors.white.withOpacity(0.8)
+                                  : const Color(0xFF6B7280),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+
+                          FittedBox // Producer and country
+                          (
+                            child: Text(
+                              '${widget.drug.producerNameRu} • ${widget.drug.countryNameRu}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: widget.isSelected
+                                    ? Colors.white.withOpacity(0.8)
+                                    : const Color(0xFF6B7280),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Expand button
+                    const SizedBox(width: 8),
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          _isExpanded = !_isExpanded;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(4),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: Icon(
+                          _isExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          size: 20,
+                          color: widget.isSelected
                               ? Colors.white.withOpacity(0.8)
                               : const Color(0xFF6B7280),
                         ),
                       ),
-                      const SizedBox(height: 4),
-
-                      // Producer and country
-                      Text(
-                        '${drug.producerNameRu} • ${drug.countryNameRu}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isSelected
-                              ? Colors.white.withOpacity(0.8)
-                              : const Color(0xFF6B7280),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
+
+          // Expanded details section
+          AnimatedCrossFade(
+            firstChild: const SizedBox.shrink(),
+            secondChild: Container(
+              padding: const EdgeInsets.fromLTRB(52, 0, 16, 16),
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: widget.isSelected
+                        ? Colors.white.withOpacity(0.2)
+                        : const Color(0xFFE5E7EB),
+                    width: 1,
+                  ),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 12),
+                  _buildDetailRow(
+                    'Registration Action',
+                    widget.drug.regActions,
+                  ),
+                  _buildDetailRow('Drug Type', widget.drug.drugTypesName),
+                  if (widget.drug.regDate.isNotEmpty)
+                    _buildDetailRow(
+                      'Registration Date',
+                      widget.drug.regDate.split('T').first,
+                    ),
+                  if (widget.drug.expirationDate.isNotEmpty)
+                    _buildDetailRow(
+                      'Expiration Date',
+                      widget.drug.expirationDate.split('T').first,
+                    ),
+                  _buildDetailRow('Term', '${widget.drug.regTerm} years'),
+                  if (widget.drug.ndNumber != null)
+                    _buildDetailRow('ND Number', widget.drug.ndNumber!),
+                  if (widget.drug.storageTerm != null)
+                    _buildDetailRow(
+                      'Storage Term',
+                      '${widget.drug.storageTerm} ${widget.drug.storageMeasureName ?? ''}',
+                    ),
+                  _buildDetailRow(
+                    'Producer (ENG)',
+                    widget.drug.producerNameEng,
+                  ),
+                  const SizedBox(height: 8),
+                  // Flags
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      if (widget.drug.genericSign) _buildBadge('Generic'),
+                      if (widget.drug.gmpSign) _buildBadge('GMP'),
+                      if (widget.drug.recipeSign)
+                        _buildBadge('Recipe Required'),
+                      if (widget.drug.patentSign) _buildBadge('Patent'),
+                      if (widget.drug.trademarkSign) _buildBadge('Trademark'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            crossFadeState: _isExpanded
+                ? CrossFadeState.showSecond
+                : CrossFadeState.showFirst,
+            duration: const Duration(milliseconds: 200),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: widget.isSelected
+                    ? Colors.white.withOpacity(0.7)
+                    : const Color(0xFF6B7280),
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 12,
+                color: widget.isSelected
+                    ? Colors.white.withOpacity(0.9)
+                    : Colors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBadge(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: widget.isSelected
+            ? Colors.white.withOpacity(0.2)
+            : const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(
+          color: widget.isSelected
+              ? Colors.white.withOpacity(0.3)
+              : const Color(0xFFE5E7EB),
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: widget.isSelected ? Colors.white : Colors.black,
         ),
       ),
     );
