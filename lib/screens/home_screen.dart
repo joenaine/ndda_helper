@@ -172,6 +172,22 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _selectAllFiltered() {
+    setState(() {
+      for (var drug in _filteredDrugs) {
+        _selectedDrugIds.add(drug.id);
+      }
+    });
+    _storageService.saveSelectedDrugs(_selectedDrugIds);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Selected ${_filteredDrugs.length} drug(s)'),
+        backgroundColor: Colors.black,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -313,6 +329,43 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    // Select All button
+                    if (_filteredDrugs.isNotEmpty)
+                      InkWell(
+                        onTap: _selectAllFiltered,
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF9FAFB),
+                            border: Border.all(color: const Color(0xFFE5E7EB)),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(
+                                Icons.select_all,
+                                size: 16,
+                                color: Color(0xFF6B7280),
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                'Select All',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     const Spacer(),
 
                     // Results count
