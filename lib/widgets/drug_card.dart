@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:universal_html/html.dart' as html;
 import '../models/drug_model.dart';
 
 class DrugCard extends StatefulWidget {
@@ -265,7 +266,44 @@ class _DrugCardState extends State<DrugCard> {
                     'Producer (ENG)',
                     widget.drug.producerNameEng,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
+                  // Download OHLP button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _openOhlpLink,
+                      icon: Icon(
+                        Icons.download,
+                        size: 18,
+                        color: widget.isSelected ? Colors.white : Colors.black,
+                      ),
+                      label: Text(
+                        'Download ОХЛП Ру',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: widget.isSelected
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        side: BorderSide(
+                          color: widget.isSelected
+                              ? Colors.white.withOpacity(0.5)
+                              : const Color(0xFFE5E7EB),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   // Flags
                   Wrap(
                     spacing: 6,
@@ -290,6 +328,12 @@ class _DrugCardState extends State<DrugCard> {
         ],
       ),
     );
+  }
+
+  void _openOhlpLink() {
+    final url =
+        'https://register.ndda.kz/register-backend/RegisterService/GetRegisterOhlpFile?registerId=${widget.drug.id}&lang=ru';
+    html.window.open(url, '_blank');
   }
 
   Widget _buildDetailRow(String label, String value) {
