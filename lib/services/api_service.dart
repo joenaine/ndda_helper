@@ -1,31 +1,35 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import '../models/drug_model.dart';
 import 'storage_service.dart';
+import 'dio_helper.dart';
 
 class ApiService {
   static const String _apiUrl =
       'https://register.ndda.kz/register-backend/RegisterService/list';
 
   final StorageService _storageService = StorageService();
+  final DioHelper _dioHelper = DioHelper.instance;
 
   // Fetch drugs from API
   Future<List<Drug>> fetchDrugsFromApi() async {
     try {
       // Prepare request body with required parameters
-      final requestBody = jsonEncode({'regTypeId': 1, 'regPeriod': 1});
+      final requestBody = {'regTypeId': 1, 'regPeriod': 1};
 
-      final response = await http.post(
-        Uri.parse(_apiUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: requestBody,
+      final response = await _dioHelper.post(
+        _apiUrl,
+        data: jsonEncode(requestBody),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        ),
       );
 
       if (response.statusCode == 200) {
-        final jsonList = jsonDecode(response.body) as List;
+        final jsonList = response.data as List;
         final drugs = jsonList.map((json) => Drug.fromJson(json)).toList();
 
         // Save to local storage
@@ -35,6 +39,9 @@ class ApiService {
       } else {
         throw Exception('Failed to load drugs: ${response.statusCode}');
       }
+    } on DioException catch (e) {
+      print('DioError fetching drugs: ${e.message}');
+      rethrow;
     } catch (e) {
       print('Error fetching drugs: $e');
       rethrow;

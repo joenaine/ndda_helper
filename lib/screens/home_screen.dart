@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../services/csv_service.dart';
 import '../widgets/drug_card.dart';
+import 'interaction_checker_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -205,6 +206,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         actions: [
+          // Drug Interaction Checker button
+          IconButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const InteractionCheckerScreen(),
+              ),
+            ),
+            icon: const Icon(Icons.medication_liquid, color: Colors.black),
+            tooltip: 'Drug Interaction Checker',
+          ),
           // Reload button
           IconButton(
             onPressed: _isLoading ? null : _reloadData,
