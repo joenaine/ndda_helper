@@ -51,6 +51,8 @@ class DrugsComService {
         _interactionListUrl,
         options: Options(
           headers: {..._browserHeaders, 'Referer': 'https://www.drugs.com/'},
+          responseType: ResponseType
+              .plain, // Get response as plain text for regex parsing
         ),
       );
 
@@ -239,7 +241,11 @@ class DrugsComService {
       final response = await _dioHelper.get(
         _checkUrl,
         queryParameters: {'drug_list': drugList},
-        options: Options(headers: _browserHeaders),
+        options: Options(
+          headers: _browserHeaders,
+          responseType:
+              ResponseType.plain, // Get response as plain text for HTML parsing
+        ),
       );
 
       if (response.statusCode == 200) {
