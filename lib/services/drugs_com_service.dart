@@ -15,6 +15,8 @@ class DrugsComService {
 
   final DioHelper _dioHelper = DioHelper.instance;
   String? _csrfToken;
+  DateTime? _csrfTokenFetchedAt;
+  static const _tokenExpirationDuration = Duration(hours: 1);
 
   // Common headers for drugs.com requests
   Map<String, dynamic> get _browserHeaders => {
@@ -40,10 +42,27 @@ class DrugsComService {
     return '$dateStr GMT';
   }
 
+  // Invalidate the CSRF token to force a refresh
+  void _invalidateCsrfToken() {
+    _csrfToken = null;
+    _csrfTokenFetchedAt = null;
+    print('🔄 CSRF token invalidated, will fetch new one');
+  }
+
   // Fetch CSRF token from the interaction list page
-  Future<String?> _fetchCsrfToken() async {
-    if (_csrfToken != null) {
+  Future<String?> _fetchCsrfToken({bool force = false}) async {
+    // Check if token is still valid
+    if (!force &&
+        _csrfToken != null &&
+        _csrfTokenFetchedAt != null &&
+        DateTime.now().difference(_csrfTokenFetchedAt!) <
+            _tokenExpirationDuration) {
       return _csrfToken;
+    }
+
+    // Token expired or force refresh requested
+    if (_csrfToken != null && !force) {
+      print('⏰ CSRF token expired, fetching new one...');
     }
 
     try {
@@ -66,7 +85,10 @@ class DrugsComService {
 
         if (csrfMatch != null) {
           _csrfToken = csrfMatch.group(1);
-          print('✅ Found CSRF token: $_csrfToken');
+          _csrfTokenFetchedAt = DateTime.now();
+          print(
+            '✅ Found CSRF token: $_csrfToken (expires in ${_tokenExpirationDuration.inMinutes} min)',
+          );
           return _csrfToken;
         }
 
@@ -166,73 +188,94 @@ class DrugsComService {
     }
   }
 
-  // Save a drug to the interaction list
+  // Save a drug to the interaction list (with automatic retry on token expiration)
   Future<InteractionDrug> saveDrug(int ddcId, int brandNameId) async {
-    try {
-      // Fetch CSRF token if not already available
-      await _fetchCsrfToken();
+    int retryCount = 0;
+    const maxRetries = 2;
 
-      if (_csrfToken == null) {
-        throw Exception('Failed to obtain CSRF token');
-      }
+    while (retryCount < maxRetries) {
+      try {
+        // Fetch CSRF token if not already available
+        await _fetchCsrfToken();
 
-      final requestBody = {
-        'interaction_list_id': 0,
-        'list_name': '',
-        'drugs': [
-          {
-            'ddc_id': ddcId,
-            'brand_name_id': brandNameId,
-            'interaction_list_id': 0,
-          },
-        ],
-      };
-
-      final response = await _dioHelper.post(
-        _saveUrl,
-        data: jsonEncode(requestBody),
-        options: Options(
-          headers: {
-            ..._browserHeaders,
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': _csrfToken,
-            'Referer': 'https://www.drugs.com/interaction/list/?drug_list=',
-          },
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        final jsonData = response.data as Map<String, dynamic>;
-        final drugs = jsonData['drugs'] as List<dynamic>?;
-
-        if (drugs != null && drugs.isNotEmpty) {
-          final drugData = drugs[0] as Map<String, dynamic>;
-          final drug = InteractionDrug.fromJson(drugData);
-
-          // Store the drug_list from the response
-          final drugList = jsonData['drug_list'] as String?;
-          return InteractionDrug(
-            ddcId: drug.ddcId,
-            brandNameId: drug.brandNameId,
-            drugName: drug.drugName,
-            genericName: drug.genericName,
-            interactionListDrugId: drug.interactionListDrugId,
-            interactionListId: drug.interactionListId,
-            drugList: drugList,
-          );
-        } else {
-          throw Exception('No drug data in response');
+        if (_csrfToken == null) {
+          throw Exception('Failed to obtain CSRF token');
         }
-      } else {
-        throw Exception('Failed to save drug: ${response.statusCode}');
+
+        final requestBody = {
+          'interaction_list_id': 0,
+          'list_name': '',
+          'drugs': [
+            {
+              'ddc_id': ddcId,
+              'brand_name_id': brandNameId,
+              'interaction_list_id': 0,
+            },
+          ],
+        };
+
+        final response = await _dioHelper.post(
+          _saveUrl,
+          data: jsonEncode(requestBody),
+          options: Options(
+            headers: {
+              ..._browserHeaders,
+              'Content-Type': 'application/json',
+              'X-CSRF-Token': _csrfToken,
+              'Referer': 'https://www.drugs.com/interaction/list/?drug_list=',
+            },
+          ),
+        );
+
+        if (response.statusCode == 200) {
+          final jsonData = response.data as Map<String, dynamic>;
+          final drugs = jsonData['drugs'] as List<dynamic>?;
+
+          if (drugs != null && drugs.isNotEmpty) {
+            final drugData = drugs[0] as Map<String, dynamic>;
+            final drug = InteractionDrug.fromJson(drugData);
+
+            // Store the drug_list from the response
+            final drugList = jsonData['drug_list'] as String?;
+            print('✅ Drug saved successfully: ${drug.drugName}');
+            return InteractionDrug(
+              ddcId: drug.ddcId,
+              brandNameId: drug.brandNameId,
+              drugName: drug.drugName,
+              genericName: drug.genericName,
+              interactionListDrugId: drug.interactionListDrugId,
+              interactionListId: drug.interactionListId,
+              drugList: drugList,
+            );
+          } else {
+            throw Exception('No drug data in response');
+          }
+        } else {
+          throw Exception('Failed to save drug: ${response.statusCode}');
+        }
+      } on DioException catch (e) {
+        // If we get 403 Forbidden, likely the CSRF token expired
+        if (e.response?.statusCode == 403 && retryCount < maxRetries - 1) {
+          print(
+            '⚠️ Got 403 Forbidden, invalidating CSRF token and retrying... (attempt ${retryCount + 1}/$maxRetries)',
+          );
+          _invalidateCsrfToken();
+          retryCount++;
+          await Future.delayed(
+            const Duration(milliseconds: 500),
+          ); // Small delay before retry
+          continue; // Retry
+        }
+
+        print('DioError saving drug: ${e.message}');
+        rethrow;
+      } catch (e) {
+        print('Error saving drug: $e');
+        rethrow;
       }
-    } on DioException catch (e) {
-      print('DioError saving drug: ${e.message}');
-      rethrow;
-    } catch (e) {
-      print('Error saving drug: $e');
-      rethrow;
     }
+
+    throw Exception('Failed to save drug after $maxRetries attempts');
   }
 
   // Check interactions for a list of drugs
