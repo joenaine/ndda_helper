@@ -30,11 +30,14 @@ class CsvService {
         'Generic',
         'GMP',
         'Recipe Required',
+        'OHLP Download Link',
       ],
     ];
 
     // Add drug data
     for (var drug in drugs) {
+      final ohlpLink =
+          'https://register.ndda.kz/register-backend/RegisterService/GetRegisterOhlpFile?registerId=${drug.id}&lang=ru';
       rows.add([
         drug.id,
         drug.regNumber,
@@ -53,6 +56,7 @@ class CsvService {
         drug.genericSign ? 'Yes' : 'No',
         drug.gmpSign ? 'Yes' : 'No',
         drug.recipeSign ? 'Yes' : 'No',
+        ohlpLink,
       ]);
     }
 
