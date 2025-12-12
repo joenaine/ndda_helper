@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:universal_html/html.dart' as html;
+import 'package:url_launcher/url_launcher.dart';
 import '../models/drug_model.dart';
 
 class DrugCard extends StatefulWidget {
@@ -312,10 +312,34 @@ class _DrugCardState extends State<DrugCard> {
     );
   }
 
-  void _openOhlpLink() {
-    final url =
+  Future<void> _openOhlpLink() async {
+    final urlString =
         'https://register.ndda.kz/register-backend/RegisterService/GetRegisterOhlpFile?registerId=${widget.drug.id}&lang=ru';
-    html.window.open(url, '_blank');
+    final uri = Uri.parse(urlString);
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open download link'),
+              backgroundColor: Colors.black,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error opening link: $e'),
+            backgroundColor: Colors.black,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildDetailRow(String label, String value) {

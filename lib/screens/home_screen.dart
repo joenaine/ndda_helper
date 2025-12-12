@@ -133,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _exportSelected() {
+  Future<void> _exportSelected() async {
     final selectedDrugs = _allDrugs
         .where((drug) => _selectedDrugIds.contains(drug.id))
         .toList();
@@ -148,14 +148,27 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    _csvService.exportToCSV(selectedDrugs);
+    try {
+      await _csvService.exportToCSV(selectedDrugs);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Exported ${selectedDrugs.length} drug(s) to CSV'),
-        backgroundColor: Colors.black,
-      ),
-    );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Exported ${selectedDrugs.length} drug(s) to CSV'),
+            backgroundColor: Colors.black,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _clearSelection() {

@@ -1,11 +1,15 @@
-import 'dart:convert';
 import 'package:csv/csv.dart';
-import 'package:universal_html/html.dart' as html;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../models/drug_model.dart';
+
+// Conditional imports
+import 'csv_service_stub.dart'
+    if (dart.library.html) 'csv_service_web.dart'
+    if (dart.library.io) 'csv_service_mobile.dart';
 
 class CsvService {
   // Export selected drugs to CSV
-  void exportToCSV(List<Drug> drugs) {
+  Future<void> exportToCSV(List<Drug> drugs) async {
     if (drugs.isEmpty) {
       return;
     }
@@ -63,20 +67,11 @@ class CsvService {
     // Convert to CSV string
     String csv = const ListToCsvConverter().convert(rows);
 
-    // Create blob and download for web
-    final bytes = utf8.encode(csv);
-    final blob = html.Blob([bytes]);
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.document.createElement('a') as html.AnchorElement
-      ..href = url
-      ..style.display = 'none'
-      ..download =
-          'ndda_selected_drugs_${DateTime.now().millisecondsSinceEpoch}.csv';
-
-    html.document.body?.children.add(anchor);
-    anchor.click();
-
-    html.document.body?.children.remove(anchor);
-    html.Url.revokeObjectUrl(url);
+    // Platform-specific export
+    if (kIsWeb) {
+      await exportToCSVWeb(csv);
+    } else {
+      await exportToCSVMobile(csv);
+    }
   }
 }
