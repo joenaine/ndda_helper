@@ -29,11 +29,13 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
   List<InteractionResult> _consumerInteractions = [];
   String? _consumerSummaryText;
   Map<String, dynamic> _consumerHeader = {};
+  bool _isConsumerHeaderExpanded = true;
   
   // Professional data
   List<InteractionResult> _professionalInteractions = [];
   String? _professionalSummaryText;
   Map<String, dynamic> _professionalHeader = {};
+  bool _isProfessionalHeaderExpanded = true;
   
   bool _isSearching = false;
   bool _isCheckingInteractions = false;
@@ -126,9 +128,11 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
         _consumerInteractions = [];
         _consumerSummaryText = null;
         _consumerHeader = {};
+        _isConsumerHeaderExpanded = true;
         _professionalInteractions = [];
         _professionalSummaryText = null;
         _professionalHeader = {};
+        _isProfessionalHeaderExpanded = true;
       });
 
       // Clear search focus
@@ -146,9 +150,11 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
       _consumerInteractions = [];
       _consumerSummaryText = null;
       _consumerHeader = {};
+      _isConsumerHeaderExpanded = true;
       _professionalInteractions = [];
       _professionalSummaryText = null;
       _professionalHeader = {};
+      _isProfessionalHeaderExpanded = true;
     });
   }
 
@@ -169,9 +175,11 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
       _consumerInteractions = [];
       _consumerSummaryText = null;
       _consumerHeader = {};
+      _isConsumerHeaderExpanded = true;
       _professionalInteractions = [];
       _professionalSummaryText = null;
       _professionalHeader = {};
+      _isProfessionalHeaderExpanded = true;
     });
 
     try {
@@ -224,9 +232,11 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
         _consumerInteractions = consumerInteractions;
         _consumerSummaryText = consumerSummary;
         _consumerHeader = consumerHeader;
+        _isConsumerHeaderExpanded = true;
         _professionalInteractions = professionalInteractions;
         _professionalSummaryText = professionalSummary;
         _professionalHeader = professionalHeader;
+        _isProfessionalHeaderExpanded = true;
         _isCheckingInteractions = false;
       });
     } catch (e) {
@@ -553,12 +563,14 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                         _consumerInteractions,
                         _consumerSummaryText,
                         _consumerHeader,
+                        isConsumer: true,
                       ),
                       // Professional view
                       _buildResults(
                         _professionalInteractions,
                         _professionalSummaryText,
                         _professionalHeader,
+                        isConsumer: false,
                       ),
                     ],
                   ),
@@ -571,8 +583,9 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
   Widget _buildResults(
     List<InteractionResult> interactions,
     String? summaryText,
-    Map<String, dynamic> header,
-  ) {
+    Map<String, dynamic> header, {
+    required bool isConsumer,
+  }) {
     // Group interactions by severity
     final majorInteractions = interactions
         .where((i) => i.severity == InteractionSeverity.major)
@@ -669,7 +682,6 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                 if (header['description'] != null && (header['description'] as String).isNotEmpty) ...[
                   const SizedBox(height: 16),
                   Container(
-                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
@@ -678,35 +690,64 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                       ),
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              size: 18,
-                              color: _getSeverityColorFromString(header['severity']),
+                        // Header with expansion button
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              if (isConsumer) {
+                                _isConsumerHeaderExpanded = !_isConsumerHeaderExpanded;
+                              } else {
+                                _isProfessionalHeaderExpanded = !_isProfessionalHeaderExpanded;
+                              }
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(14),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 18,
+                                  color: _getSeverityColorFromString(header['severity']),
+                                ),
+                                const SizedBox(width: 8),
+                                const Expanded(
+                                  child: Text(
+                                    'Description',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  (isConsumer ? _isConsumerHeaderExpanded : _isProfessionalHeaderExpanded)
+                                      ? Icons.expand_less
+                                      : Icons.expand_more,
+                                  color: const Color(0xFF6B7280),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Description',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          header['description'] as String,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF374151),
-                            height: 1.6,
                           ),
                         ),
+                        // Expandable content
+                        if (isConsumer ? _isConsumerHeaderExpanded : _isProfessionalHeaderExpanded) ...[
+                          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                          Padding(
+                            padding: const EdgeInsets.all(14),
+                            child: Text(
+                              header['description'] as String,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF374151),
+                                height: 1.6,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
