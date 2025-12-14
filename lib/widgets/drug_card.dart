@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'package:share_plus/share_plus.dart';
 import 'package:universal_html/html.dart' as html;
 import '../models/drug_model.dart';
 
@@ -322,39 +323,86 @@ class _DrugCardState extends State<DrugCard> {
       // Web platform - open in new tab
       html.window.open(urlString, '_blank');
     } else {
-      // Mobile platform - use url_launcher
+      // Mobile platform - download and share the file
       try {
-        final uri = Uri.parse(urlString);
-
-        // Try launching with platform default first (best compatibility)
-        bool launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
-
-        if (!launched) {
-          // Fallback to external application
-          launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-        }
-
-        if (!launched) {
-          // Last resort: try in-app web view
-          launched = await launchUrl(uri, mode: LaunchMode.inAppWebView);
-        }
-
-        if (!launched && mounted) {
+        if (mounted) {
+          // Show loading indicator
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text(
-                'Unable to open link. Please check if a browser is installed.',
+              content: Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Text('Downloading file...'),
+                ],
               ),
-              backgroundColor: Colors.red,
+              backgroundColor: Colors.black,
+              duration: Duration(seconds: 2),
             ),
           );
+        }
+
+        // Download the file
+        final response = await http.get(Uri.parse(urlString));
+
+        if (response.statusCode == 200) {
+          // Get the filename from URL or use a default
+          final uri = Uri.parse(urlString);
+          final fileName = uri.pathSegments.isNotEmpty
+              ? uri.pathSegments.last
+              : 'ohlp_${widget.drug.id}.zip';
+
+          // Create XFile from downloaded bytes (it's a ZIP file)
+          final xFile = XFile.fromData(
+            response.bodyBytes,
+            mimeType: 'application/zip',
+            name: fileName.contains('.') ? fileName : '$fileName.zip',
+          );
+
+          // Share the file so user can save/view it
+          await Share.shareXFiles(
+            [xFile],
+            subject: 'OHLP File - ${widget.drug.name}',
+            text: 'OHLP document for ${widget.drug.name}',
+          );
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('File ready to save'),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Failed to download file: ${response.statusCode}',
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       } catch (e) {
         // Show error to user
         if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error opening link: $e'),
+              content: Text('Error downloading file: $e'),
               backgroundColor: Colors.red,
             ),
           );
