@@ -14,23 +14,36 @@ class InteractionCheckerScreen extends StatefulWidget {
       _InteractionCheckerScreenState();
 }
 
-class _InteractionCheckerScreenState extends State<InteractionCheckerScreen> {
+class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
+    with SingleTickerProviderStateMixin {
   final DrugsComService _service = DrugsComService();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
 
+  late TabController _tabController;
+
   List<DrugSuggestion> _suggestions = [];
   final List<InteractionDrug> _selectedDrugs = [];
-  List<InteractionResult> _interactions = [];
+  
+  // Consumer data
+  List<InteractionResult> _consumerInteractions = [];
+  String? _consumerSummaryText;
+  Map<String, dynamic> _consumerHeader = {};
+  
+  // Professional data
+  List<InteractionResult> _professionalInteractions = [];
+  String? _professionalSummaryText;
+  Map<String, dynamic> _professionalHeader = {};
+  
   bool _isSearching = false;
   bool _isCheckingInteractions = false;
   String? _errorMessage;
   Timer? _debounceTimer;
-  String? _summaryText;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -39,6 +52,7 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen> {
     _debounceTimer?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -109,8 +123,12 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen> {
 
       setState(() {
         _selectedDrugs.add(savedDrug);
-        _interactions = []; // Clear previous results
-        _summaryText = null;
+        _consumerInteractions = [];
+        _consumerSummaryText = null;
+        _consumerHeader = {};
+        _professionalInteractions = [];
+        _professionalSummaryText = null;
+        _professionalHeader = {};
       });
 
       // Clear search focus
@@ -125,8 +143,12 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen> {
   void _removeDrug(InteractionDrug drug) {
     setState(() {
       _selectedDrugs.remove(drug);
-      _interactions = [];
-      _summaryText = null;
+      _consumerInteractions = [];
+      _consumerSummaryText = null;
+      _consumerHeader = {};
+      _professionalInteractions = [];
+      _professionalSummaryText = null;
+      _professionalHeader = {};
     });
   }
 
@@ -144,8 +166,12 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen> {
     setState(() {
       _isCheckingInteractions = true;
       _errorMessage = null;
-      _interactions = [];
-      _summaryText = null;
+      _consumerInteractions = [];
+      _consumerSummaryText = null;
+      _consumerHeader = {};
+      _professionalInteractions = [];
+      _professionalSummaryText = null;
+      _professionalHeader = {};
     });
 
     try {
@@ -157,27 +183,50 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen> {
         drugList = _service.buildDrugList(_selectedDrugs);
       }
 
-      // Fetch HTML
-      final htmlContent = await _service.checkInteractions(drugList);
+      // Fetch both consumer and professional data in parallel
+      final results = await Future.wait([
+        _service.checkInteractions(drugList, professional: false),
+        _service.checkInteractions(drugList, professional: true),
+      ]);
 
-      // Parse HTML
-      final interactions = _service.parseInteractionHtml(htmlContent);
+      final consumerHtml = results[0];
+      final professionalHtml = results[1];
 
-      // Extract summary from HTML
-      String? summary;
+      // Parse consumer data
+      final consumerInteractions = _service.parseInteractionHtml(consumerHtml);
+      final consumerHeader = _service.parseInteractionHeader(consumerHtml);
+      String? consumerSummary;
       try {
-        final div = html.DivElement()..innerHtml = htmlContent;
+        final div = html.DivElement()..innerHtml = consumerHtml;
         final summaryP = div.querySelector('p.ddc-mgb-0');
         if (summaryP != null && summaryP.text != null) {
-          summary = summaryP.text!.trim();
+          consumerSummary = summaryP.text!.trim();
+        }
+      } catch (e) {
+        // Ignore summary parsing errors
+      }
+
+      // Parse professional data
+      final professionalInteractions = _service.parseInteractionHtml(professionalHtml);
+      final professionalHeader = _service.parseInteractionHeader(professionalHtml);
+      String? professionalSummary;
+      try {
+        final div = html.DivElement()..innerHtml = professionalHtml;
+        final summaryP = div.querySelector('p.ddc-mgb-0');
+        if (summaryP != null && summaryP.text != null) {
+          professionalSummary = summaryP.text!.trim();
         }
       } catch (e) {
         // Ignore summary parsing errors
       }
 
       setState(() {
-        _interactions = interactions;
-        _summaryText = summary;
+        _consumerInteractions = consumerInteractions;
+        _consumerSummaryText = consumerSummary;
+        _consumerHeader = consumerHeader;
+        _professionalInteractions = professionalInteractions;
+        _professionalSummaryText = professionalSummary;
+        _professionalHeader = professionalHeader;
         _isCheckingInteractions = false;
       });
     } catch (e) {
@@ -435,13 +484,43 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen> {
               ),
             ),
 
+          // Tab bar
+          if (_consumerInteractions.isNotEmpty || _professionalInteractions.isNotEmpty)
+            Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+                ),
+              ),
+              child: TabBar(
+                controller: _tabController,
+                labelColor: Colors.black,
+                unselectedLabelColor: const Color(0xFF6B7280),
+                indicatorColor: Colors.black,
+                indicatorWeight: 2,
+                labelStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+                tabs: const [
+                  Tab(text: 'Consumer'),
+                  Tab(text: 'Professional'),
+                ],
+              ),
+            ),
+
           // Results section
           Expanded(
             child: _isCheckingInteractions
                 ? const Center(
                     child: CircularProgressIndicator(color: Colors.black),
                   )
-                : _interactions.isEmpty
+                : (_consumerInteractions.isEmpty && _professionalInteractions.isEmpty)
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -466,30 +545,134 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen> {
                       ],
                     ),
                   )
-                : _buildResults(),
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      // Consumer view
+                      _buildResults(
+                        _consumerInteractions,
+                        _consumerSummaryText,
+                        _consumerHeader,
+                      ),
+                      // Professional view
+                      _buildResults(
+                        _professionalInteractions,
+                        _professionalSummaryText,
+                        _professionalHeader,
+                      ),
+                    ],
+                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildResults() {
+  Widget _buildResults(
+    List<InteractionResult> interactions,
+    String? summaryText,
+    Map<String, dynamic> header,
+  ) {
     // Group interactions by severity
-    final majorInteractions = _interactions
+    final majorInteractions = interactions
         .where((i) => i.severity == InteractionSeverity.major)
         .toList();
-    final moderateInteractions = _interactions
+    final moderateInteractions = interactions
         .where((i) => i.severity == InteractionSeverity.moderate)
         .toList();
-    final minorInteractions = _interactions
+    final minorInteractions = interactions
         .where((i) => i.severity == InteractionSeverity.minor)
         .toList();
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        // Interaction Header (Interactions between your drugs)
+        if (header.isNotEmpty) ...[
+          Container(
+            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  _getSeverityColorFromString(header['severity']).withOpacity(0.1),
+                  _getSeverityColorFromString(header['severity']).withOpacity(0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _getSeverityColorFromString(header['severity']),
+                width: 2,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  header['header'] ?? '',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _getSeverityColorFromString(header['severity']),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        header['severity'] ?? '',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if ((header['drugs'] as List?)?.isNotEmpty ?? false) ...[
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: (header['drugs'] as List<dynamic>)
+                        .map((drug) => Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: _getSeverityColorFromString(header['severity']),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Text(
+                                drug.toString(),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+        
         // Summary
-        if (_summaryText != null)
+        if (summaryText != null)
           Container(
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.only(bottom: 16),
@@ -499,7 +682,7 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen> {
               border: Border.all(color: const Color(0xFFE5E7EB)),
             ),
             child: Text(
-              _summaryText!,
+              summaryText,
               style: const TextStyle(fontSize: 14, color: Colors.black),
             ),
           ),
@@ -640,6 +823,20 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen> {
       case InteractionSeverity.minor:
         return Colors.grey;
       case InteractionSeverity.unknown:
+        return Colors.grey;
+    }
+  }
+
+  Color _getSeverityColorFromString(String? severity) {
+    if (severity == null) return Colors.grey;
+    switch (severity.toLowerCase()) {
+      case 'major':
+        return Colors.red;
+      case 'moderate':
+        return Colors.orange;
+      case 'minor':
+        return Colors.grey;
+      default:
         return Colors.grey;
     }
   }

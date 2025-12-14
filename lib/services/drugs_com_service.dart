@@ -279,11 +279,16 @@ class DrugsComService {
   }
 
   // Check interactions for a list of drugs
-  Future<String> checkInteractions(String drugList) async {
+  Future<String> checkInteractions(String drugList, {bool professional = false}) async {
     try {
+      final queryParams = {
+        'drug_list': drugList,
+        if (professional) 'professional': '1',
+      };
+      
       final response = await _dioHelper.get(
         _checkUrl,
-        queryParameters: {'drug_list': drugList},
+        queryParameters: queryParams,
         options: Options(
           headers: _browserHeaders,
           responseType:
@@ -400,6 +405,66 @@ class DrugsComService {
     }
 
     return results;
+  }
+
+  // Extract header summary from the interactions page
+  Map<String, dynamic> parseInteractionHeader(String htmlContent) {
+    try {
+      final div = html.DivElement()..innerHtml = htmlContent;
+      
+      // Find the "Interactions between your drugs" section
+      final h2Elements = div.querySelectorAll('h2');
+      for (var h2 in h2Elements) {
+        if (h2.text?.toLowerCase().contains('interactions between your drugs') ?? false) {
+          // Found the header, now get the first interaction
+          final wrapper = h2.nextElementSibling;
+          if (wrapper != null) {
+            final firstInteraction = wrapper.querySelector('.interactions-reference');
+            if (firstInteraction != null) {
+              // Get severity
+              final severitySpan = firstInteraction.querySelector(
+                '.status-category-major, .status-category-moderate, .status-category-minor',
+              );
+              String? severity;
+              if (severitySpan != null) {
+                final classes = severitySpan.classes;
+                if (classes.contains('status-category-major')) {
+                  severity = 'Major';
+                } else if (classes.contains('status-category-moderate')) {
+                  severity = 'Moderate';
+                } else if (classes.contains('status-category-minor')) {
+                  severity = 'Minor';
+                }
+              }
+              
+              // Get drug names from h3
+              final h3 = firstInteraction.querySelector('h3');
+              List<String> drugNames = [];
+              if (h3 != null) {
+                // Extract text and clean it
+                String h3Text = h3.text ?? '';
+                // Remove extra whitespace
+                h3Text = h3Text.replaceAll(RegExp(r'\s+'), ' ').trim();
+                
+                // Split by common separators (space is used between drug names with icon in between)
+                // The text comes as "tetracycline estradiol" after cleaning
+                drugNames = h3Text.split(' ').where((s) => s.isNotEmpty).toList();
+              }
+              
+              return {
+                'header': 'Interactions between your drugs',
+                'severity': severity,
+                'drugs': drugNames,
+              };
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print('Error parsing interaction header: $e');
+    }
+    
+    return {};
   }
 
   // Build drug list string from list of drugs
