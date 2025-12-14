@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:universal_html/html.dart' as html;
 import '../models/drug_model.dart';
 
@@ -312,10 +314,53 @@ class _DrugCardState extends State<DrugCard> {
     );
   }
 
-  void _openOhlpLink() {
-    final url =
+  Future<void> _openOhlpLink() async {
+    final urlString =
         'https://register.ndda.kz/register-backend/RegisterService/GetRegisterOhlpFile?registerId=${widget.drug.id}&lang=ru';
-    html.window.open(url, '_blank');
+
+    if (kIsWeb) {
+      // Web platform - open in new tab
+      html.window.open(urlString, '_blank');
+    } else {
+      // Mobile platform - use url_launcher
+      try {
+        final uri = Uri.parse(urlString);
+
+        // Try launching with platform default first (best compatibility)
+        bool launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
+
+        if (!launched) {
+          // Fallback to external application
+          launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+        }
+
+        if (!launched) {
+          // Last resort: try in-app web view
+          launched = await launchUrl(uri, mode: LaunchMode.inAppWebView);
+        }
+
+        if (!launched && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Unable to open link. Please check if a browser is installed.',
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        // Show error to user
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error opening link: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 
   Widget _buildDetailRow(String label, String value) {
