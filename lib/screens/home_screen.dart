@@ -198,11 +198,11 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         title: const Text(
-          'NDDA Helper',
+          'ЛИСТ РЕГИСТРАЦИИ ЛЕКАРСТВ РК',
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.w600,
-            fontSize: 20,
+            fontSize: 16,
           ),
         ),
         actions: [

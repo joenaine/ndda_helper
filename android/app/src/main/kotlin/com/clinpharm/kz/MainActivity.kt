@@ -1,4 +1,4 @@
-package com.example.nddahelper
+package com.clinpharm.kz
 
 import io.flutter.embedding.android.FlutterActivity
 

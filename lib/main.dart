@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'NDDA Helper',
+      title: 'ЛИСТ РЕГИСТРАЦИИ ЛЕКАРСТВ',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

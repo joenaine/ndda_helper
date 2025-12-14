@@ -24,19 +24,19 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
 
   List<DrugSuggestion> _suggestions = [];
   final List<InteractionDrug> _selectedDrugs = [];
-  
+
   // Consumer data
   List<InteractionResult> _consumerInteractions = [];
   String? _consumerSummaryText;
   Map<String, dynamic> _consumerHeader = {};
   bool _isConsumerHeaderExpanded = true;
-  
+
   // Professional data
   List<InteractionResult> _professionalInteractions = [];
   String? _professionalSummaryText;
   Map<String, dynamic> _professionalHeader = {};
   bool _isProfessionalHeaderExpanded = true;
-  
+
   bool _isSearching = false;
   bool _isCheckingInteractions = false;
   String? _errorMessage;
@@ -215,8 +215,12 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
       }
 
       // Parse professional data
-      final professionalInteractions = _service.parseInteractionHtml(professionalHtml);
-      final professionalHeader = _service.parseInteractionHeader(professionalHtml);
+      final professionalInteractions = _service.parseInteractionHtml(
+        professionalHtml,
+      );
+      final professionalHeader = _service.parseInteractionHeader(
+        professionalHtml,
+      );
       String? professionalSummary;
       try {
         final div = html.DivElement()..innerHtml = professionalHtml;
@@ -495,7 +499,8 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
             ),
 
           // Tab bar
-          if (_consumerInteractions.isNotEmpty || _professionalInteractions.isNotEmpty)
+          if (_consumerInteractions.isNotEmpty ||
+              _professionalInteractions.isNotEmpty)
             Container(
               decoration: const BoxDecoration(
                 color: Colors.white,
@@ -530,7 +535,8 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                 ? const Center(
                     child: CircularProgressIndicator(color: Colors.black),
                   )
-                : (_consumerInteractions.isEmpty && _professionalInteractions.isEmpty)
+                : (_consumerInteractions.isEmpty &&
+                      _professionalInteractions.isEmpty)
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -608,8 +614,12 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  _getSeverityColorFromString(header['severity']).withOpacity(0.1),
-                  _getSeverityColorFromString(header['severity']).withOpacity(0.05),
+                  _getSeverityColorFromString(
+                    header['severity'],
+                  ).withOpacity(0.1),
+                  _getSeverityColorFromString(
+                    header['severity'],
+                  ).withOpacity(0.05),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
@@ -635,7 +645,10 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: _getSeverityColorFromString(header['severity']),
                         borderRadius: BorderRadius.circular(6),
@@ -657,36 +670,46 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                     spacing: 8,
                     runSpacing: 8,
                     children: (header['drugs'] as List<dynamic>)
-                        .map((drug) => Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: _getSeverityColorFromString(header['severity']),
-                                  width: 1.5,
+                        .map(
+                          (drug) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: _getSeverityColorFromString(
+                                  header['severity'],
                                 ),
+                                width: 1.5,
                               ),
-                              child: Text(
-                                drug.toString(),
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black,
-                                ),
+                            ),
+                            child: Text(
+                              drug.toString(),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
                               ),
-                            ))
+                            ),
+                          ),
+                        )
                         .toList(),
                   ),
                 ],
-                if (header['description'] != null && (header['description'] as String).isNotEmpty) ...[
+                if (header['description'] != null &&
+                    (header['description'] as String).isNotEmpty) ...[
                   const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: _getSeverityColorFromString(header['severity']).withOpacity(0.3),
+                        color: _getSeverityColorFromString(
+                          header['severity'],
+                        ).withOpacity(0.3),
                       ),
                     ),
                     child: Column(
@@ -696,9 +719,11 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                           onTap: () {
                             setState(() {
                               if (isConsumer) {
-                                _isConsumerHeaderExpanded = !_isConsumerHeaderExpanded;
+                                _isConsumerHeaderExpanded =
+                                    !_isConsumerHeaderExpanded;
                               } else {
-                                _isProfessionalHeaderExpanded = !_isProfessionalHeaderExpanded;
+                                _isProfessionalHeaderExpanded =
+                                    !_isProfessionalHeaderExpanded;
                               }
                             });
                           },
@@ -710,7 +735,9 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                                 Icon(
                                   Icons.info_outline,
                                   size: 18,
-                                  color: _getSeverityColorFromString(header['severity']),
+                                  color: _getSeverityColorFromString(
+                                    header['severity'],
+                                  ),
                                 ),
                                 const SizedBox(width: 8),
                                 const Expanded(
@@ -724,7 +751,9 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                                   ),
                                 ),
                                 Icon(
-                                  (isConsumer ? _isConsumerHeaderExpanded : _isProfessionalHeaderExpanded)
+                                  (isConsumer
+                                          ? _isConsumerHeaderExpanded
+                                          : _isProfessionalHeaderExpanded)
                                       ? Icons.expand_less
                                       : Icons.expand_more,
                                   color: const Color(0xFF6B7280),
@@ -734,7 +763,9 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                           ),
                         ),
                         // Expandable content
-                        if (isConsumer ? _isConsumerHeaderExpanded : _isProfessionalHeaderExpanded) ...[
+                        if (isConsumer
+                            ? _isConsumerHeaderExpanded
+                            : _isProfessionalHeaderExpanded) ...[
                           const Divider(height: 1, color: Color(0xFFE5E7EB)),
                           Padding(
                             padding: const EdgeInsets.all(14),
@@ -756,7 +787,7 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
             ),
           ),
         ],
-        
+
         // Summary
         if (summaryText != null)
           Container(
