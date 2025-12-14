@@ -451,10 +451,23 @@ class DrugsComService {
                 drugNames = h3Text.split(' ').where((s) => s.isNotEmpty).toList();
               }
               
+              // Get description from paragraphs
+              final paragraphs = firstInteraction.querySelectorAll('p');
+              String description = '';
+              for (var p in paragraphs) {
+                final text = p.text?.trim() ?? '';
+                // Skip "Applies to:" paragraph and get the actual description
+                if (text.isNotEmpty && !text.startsWith('Applies to:')) {
+                  description = text;
+                  break; // Get the first description paragraph
+                }
+              }
+              
               return {
                 'header': 'Interactions between your drugs',
                 'severity': severity,
                 'drugs': drugNames,
+                'description': description,
               };
             }
           }
