@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "nddahelper"
-  }
+  },
+  "targets": {
+    "nddahelper": {
+      "hosting": {
+        "drughelperkz": [
+          "drughelperkz"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
