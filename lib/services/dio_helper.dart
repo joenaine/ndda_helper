@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 class DioHelper {
   static DioHelper? _instance;
   late Dio _dio;
-  final CookieJar _cookieJar = CookieJar();
+  final CookieJar? _cookieJar = kIsWeb ? null : CookieJar();
 
   DioHelper._internal() {
     _dio = Dio(
@@ -29,34 +30,39 @@ class DioHelper {
       ),
     );
 
-    // Add cookie management interceptor
-    _dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          // Add cookies from jar
-          final uri = options.uri;
-          final cookies = await _cookieJar.loadForRequest(uri);
-          if (cookies.isNotEmpty) {
-            options.headers['Cookie'] = cookies
-                .map((c) => '${c.name}=${c.value}')
-                .join('; ');
-          }
-          return handler.next(options);
-        },
-        onResponse: (response, handler) async {
-          // Save cookies from response
-          final uri = response.requestOptions.uri;
-          final setCookieHeaders = response.headers['set-cookie'];
-          if (setCookieHeaders != null) {
-            for (final setCookie in setCookieHeaders) {
-              final cookie = Cookie.fromSetCookieValue(setCookie);
-              await _cookieJar.saveFromResponse(uri, [cookie]);
-            }
-          }
-          return handler.next(response);
-        },
-      ),
-    );
+    // Add cookie management interceptor (skip on web)
+    if (!kIsWeb) {
+      final cookieJar = _cookieJar;
+      if (cookieJar != null) {
+        _dio.interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (options, handler) async {
+              // Add cookies from jar
+              final uri = options.uri;
+              final cookies = await cookieJar.loadForRequest(uri);
+              if (cookies.isNotEmpty) {
+                options.headers['Cookie'] = cookies
+                    .map((c) => '${c.name}=${c.value}')
+                    .join('; ');
+              }
+              return handler.next(options);
+            },
+            onResponse: (response, handler) async {
+              // Save cookies from response
+              final uri = response.requestOptions.uri;
+              final setCookieHeaders = response.headers['set-cookie'];
+              if (setCookieHeaders != null) {
+                for (final setCookie in setCookieHeaders) {
+                  final cookie = Cookie.fromSetCookieValue(setCookie);
+                  await cookieJar.saveFromResponse(uri, [cookie]);
+                }
+              }
+              return handler.next(response);
+            },
+          ),
+        );
+      }
+    }
   }
 
   static DioHelper get instance {
@@ -144,11 +150,22 @@ class DioHelper {
 
   // Clear all cookies
   Future<void> clearCookies() async {
-    await _cookieJar.deleteAll();
+    if (!kIsWeb) {
+      final cookieJar = _cookieJar;
+      if (cookieJar != null) {
+        await cookieJar.deleteAll();
+      }
+    }
   }
 
   // Get cookies for a specific URL
   Future<List<Cookie>> getCookies(Uri uri) async {
-    return await _cookieJar.loadForRequest(uri);
+    if (!kIsWeb) {
+      final cookieJar = _cookieJar;
+      if (cookieJar != null) {
+        return await cookieJar.loadForRequest(uri);
+      }
+    }
+    return [];
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/drug_model.dart';
 
@@ -12,7 +13,14 @@ class StorageService {
   late Box<String> _selectedDrugsBox;
   bool _initialized = false;
 
+  // Check if running on web platform
+  bool get _isWeb => kIsWeb;
+
   Future<void> _ensureInitialized() async {
+    // Skip Hive initialization on web
+    if (_isWeb) {
+      return;
+    }
     if (!_initialized) {
       _drugsBox = await Hive.openBox<String>(_drugsBoxName);
       _selectedDrugsBox = await Hive.openBox<String>(_selectedDrugsBoxName);
@@ -22,6 +30,10 @@ class StorageService {
 
   // Save drugs list to local storage
   Future<void> saveDrugs(List<Drug> drugs) async {
+    // No-op on web
+    if (_isWeb) {
+      return;
+    }
     try {
       await _ensureInitialized();
       final jsonList = drugs.map((drug) => drug.toJson()).toList();
@@ -35,6 +47,10 @@ class StorageService {
 
   // Load drugs list from local storage
   Future<List<Drug>> loadDrugs() async {
+    // Return empty list on web
+    if (_isWeb) {
+      return [];
+    }
     try {
       await _ensureInitialized();
       final jsonString = _drugsBox.get(_drugsKey);
@@ -53,6 +69,10 @@ class StorageService {
 
   // Check if drugs are cached
   Future<bool> hasCachedDrugs() async {
+    // Always return false on web
+    if (_isWeb) {
+      return false;
+    }
     try {
       await _ensureInitialized();
       final jsonString = _drugsBox.get(_drugsKey);
@@ -65,6 +85,10 @@ class StorageService {
 
   // Clear cached drugs
   Future<void> clearDrugsCache() async {
+    // No-op on web
+    if (_isWeb) {
+      return;
+    }
     try {
       await _ensureInitialized();
       await _drugsBox.delete(_drugsKey);
@@ -76,6 +100,10 @@ class StorageService {
 
   // Save selected drugs IDs
   Future<void> saveSelectedDrugs(Set<int> selectedIds) async {
+    // No-op on web
+    if (_isWeb) {
+      return;
+    }
     try {
       await _ensureInitialized();
       final jsonString = jsonEncode(selectedIds.toList());
@@ -88,6 +116,10 @@ class StorageService {
 
   // Load selected drugs IDs
   Future<Set<int>> loadSelectedDrugs() async {
+    // Return empty set on web
+    if (_isWeb) {
+      return {};
+    }
     try {
       await _ensureInitialized();
       final jsonString = _selectedDrugsBox.get(_selectedDrugsKey);
@@ -106,6 +138,10 @@ class StorageService {
 
   // Clear selected drugs
   Future<void> clearSelectedDrugs() async {
+    // No-op on web
+    if (_isWeb) {
+      return;
+    }
     try {
       await _ensureInitialized();
       await _selectedDrugsBox.delete(_selectedDrugsKey);

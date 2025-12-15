@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Hive.initFlutter();
+  // Skip Hive initialization on web as it can cause performance issues
+  if (!kIsWeb) {
+    await Hive.initFlutter();
+  }
   runApp(const MyApp());
 }
 
