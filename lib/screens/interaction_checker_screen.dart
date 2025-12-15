@@ -276,268 +276,20 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
           child: Container(height: 1, color: const Color(0xFFE5E7EB)),
         ),
       ),
-      body: Column(
-        children: [
-          // Search section
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: _isCheckingInteractions
+          ? const Center(child: CircularProgressIndicator(color: Colors.black))
+          : (_consumerInteractions.isEmpty && _professionalInteractions.isEmpty)
+          ? Column(
               children: [
-                TextField(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  decoration: InputDecoration(
-                    hintText: 'Search for a drug...',
-                    hintStyle: const TextStyle(
-                      color: Color(0xFF6B7280),
-                      fontSize: 15,
-                    ),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Color(0xFF6B7280),
-                    ),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(
-                              Icons.clear,
-                              color: Color(0xFF6B7280),
-                            ),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() {
-                                _suggestions = [];
-                              });
-                            },
-                          )
-                        : _isSearching
-                        ? const Padding(
-                            padding: EdgeInsets.all(12.0),
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.black,
-                              ),
-                            ),
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: const Color(0xFFF9FAFB),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(
-                        color: Colors.black,
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                  ),
-                ),
-
-                // Suggestions dropdown
-                if (_suggestions.isNotEmpty)
-                  Container(
-                    margin: const EdgeInsets.only(top: 8),
-                    constraints: const BoxConstraints(maxHeight: 200),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: const Color(0xFFE5E7EB)),
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: _suggestions.length,
-                      itemBuilder: (context, index) {
-                        final suggestion = _suggestions[index];
-                        return ListTile(
-                          dense: true,
-                          title: Text(
-                            suggestion.displayName,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          subtitle: suggestion.additional.isNotEmpty
-                              ? Text(
-                                  suggestion.additional,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF6B7280),
-                                  ),
-                                )
-                              : null,
-                          onTap: () => _onDrugSelected(suggestion),
-                        );
-                      },
-                    ),
-                  ),
-              ],
-            ),
-          ),
-
-          // Selected drugs section
-          if (_selectedDrugs.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF9FAFB),
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Selected Drugs',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _selectedDrugs.map((drug) {
-                      return Chip(
-                        label: Text(
-                          drug.displayName,
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                        deleteIcon: const Icon(Icons.close, size: 18),
-                        onDeleted: () => _removeDrug(drug),
-                        backgroundColor: Colors.white,
-                        side: const BorderSide(color: Color(0xFFE5E7EB)),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed:
-                          _selectedDrugs.length >= 2 && !_isCheckingInteractions
-                          ? _checkInteractions
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        disabledBackgroundColor: const Color(0xFFE5E7EB),
-                      ),
-                      child: _isCheckingInteractions
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              'Check Interactions (${_selectedDrugs.length} drug${_selectedDrugs.length == 1 ? '' : 's'})',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Error message
-          if (_errorMessage != null)
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: const Color(0xFFFFF5F5),
-              child: Row(
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(fontSize: 14, color: Colors.red),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Tab bar
-          if (_consumerInteractions.isNotEmpty ||
-              _professionalInteractions.isNotEmpty)
-            Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1),
-                ),
-              ),
-              child: TabBar(
-                controller: _tabController,
-                labelColor: Colors.black,
-                unselectedLabelColor: const Color(0xFF6B7280),
-                indicatorColor: Colors.black,
-                indicatorWeight: 2,
-                labelStyle: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                ),
-                unselectedLabelStyle: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
-                tabs: const [
-                  Tab(text: 'Consumer'),
-                  Tab(text: 'Professional'),
-                ],
-              ),
-            ),
-
-          // Results section
-          Expanded(
-            child: _isCheckingInteractions
-                ? const Center(
-                    child: CircularProgressIndicator(color: Colors.black),
-                  )
-                : (_consumerInteractions.isEmpty &&
-                      _professionalInteractions.isEmpty)
-                ? Center(
+                // Search section
+                _buildSearchSection(),
+                // Selected drugs section
+                if (_selectedDrugs.isNotEmpty) _buildSelectedDrugsSection(),
+                // Error message
+                if (_errorMessage != null) _buildErrorMessage(),
+                // Empty state
+                Expanded(
+                  child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -560,30 +312,344 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                         ),
                       ],
                     ),
-                  )
-                : TabBarView(
-                    controller: _tabController,
-                    children: [
-                      // Consumer view
-                      _buildResults(
-                        _consumerInteractions,
-                        _consumerSummaryText,
-                        _consumerHeader,
-                        isConsumer: true,
-                      ),
-                      // Professional view
-                      _buildResults(
-                        _professionalInteractions,
-                        _professionalSummaryText,
-                        _professionalHeader,
-                        isConsumer: false,
-                      ),
-                    ],
                   ),
+                ),
+              ],
+            )
+          : NestedScrollView(
+              headerSliverBuilder:
+                  (BuildContext context, bool innerBoxIsScrolled) {
+                    final slivers = <Widget>[
+                      // Search section sliver
+                      SliverPersistentHeader(
+                        pinned: false,
+                        floating: false,
+                        delegate: _SearchSectionDelegate(
+                          minHeight: 0,
+                          maxHeight: _calculateSearchSectionHeight(),
+                          child: _buildSearchSection(),
+                        ),
+                      ),
+                    ];
+
+                    // Selected drugs section sliver
+                    if (_selectedDrugs.isNotEmpty)
+                      slivers.add(
+                        SliverPersistentHeader(
+                          pinned: false,
+                          floating: false,
+                          delegate: _SelectedDrugsSectionDelegate(
+                            minHeight: 0,
+                            maxHeight: _calculateSelectedDrugsSectionHeight(),
+                            child: _buildSelectedDrugsSection(),
+                          ),
+                        ),
+                      );
+
+                    // Error message sliver
+                    if (_errorMessage != null)
+                      slivers.add(
+                        SliverToBoxAdapter(child: _buildErrorMessage()),
+                      );
+
+                    // Tab bar sliver
+                    slivers.add(
+                      SliverPersistentHeader(
+                        pinned: true,
+                        floating: false,
+                        delegate: _TabBarDelegate(
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Color(0xFFE5E7EB),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: TabBar(
+                              controller: _tabController,
+                              labelColor: Colors.black,
+                              unselectedLabelColor: const Color(0xFF6B7280),
+                              indicatorColor: Colors.black,
+                              indicatorWeight: 2,
+                              labelStyle: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              unselectedLabelStyle: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              tabs: const [
+                                Tab(text: 'Consumer'),
+                                Tab(text: 'Professional'),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+
+                    return slivers;
+                  },
+              body: TabBarView(
+                controller: _tabController,
+                children: [
+                  // Consumer view
+                  _buildResults(
+                    _consumerInteractions,
+                    _consumerSummaryText,
+                    _consumerHeader,
+                    isConsumer: true,
+                  ),
+                  // Professional view
+                  _buildResults(
+                    _professionalInteractions,
+                    _professionalSummaryText,
+                    _professionalHeader,
+                    isConsumer: false,
+                  ),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildSearchSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextField(
+            controller: _searchController,
+            focusNode: _searchFocusNode,
+            decoration: InputDecoration(
+              hintText: 'Search for a drug...',
+              hintStyle: const TextStyle(
+                color: Color(0xFF6B7280),
+                fontSize: 15,
+              ),
+              prefixIcon: const Icon(Icons.search, color: Color(0xFF6B7280)),
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, color: Color(0xFF6B7280)),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {
+                          _suggestions = [];
+                        });
+                      },
+                    )
+                  : _isSearching
+                  ? const Padding(
+                      padding: EdgeInsets.all(12.0),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.black,
+                        ),
+                      ),
+                    )
+                  : null,
+              filled: true,
+              fillColor: const Color(0xFFF9FAFB),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Colors.black, width: 2),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
+            ),
+          ),
+
+          // Suggestions dropdown
+          if (_suggestions.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              constraints: const BoxConstraints(maxHeight: 200),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: _suggestions.length,
+                itemBuilder: (context, index) {
+                  final suggestion = _suggestions[index];
+                  return ListTile(
+                    dense: true,
+                    title: Text(
+                      suggestion.displayName,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    subtitle: suggestion.additional.isNotEmpty
+                        ? Text(
+                            suggestion.additional,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF6B7280),
+                            ),
+                          )
+                        : null,
+                    onTap: () => _onDrugSelected(suggestion),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSelectedDrugsSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF9FAFB),
+        border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Selected Drugs',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _selectedDrugs.map((drug) {
+              return Chip(
+                label: Text(
+                  drug.displayName,
+                  style: const TextStyle(fontSize: 13),
+                ),
+                deleteIcon: const Icon(Icons.close, size: 18),
+                onDeleted: () => _removeDrug(drug),
+                backgroundColor: Colors.white,
+                side: const BorderSide(color: Color(0xFFE5E7EB)),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _selectedDrugs.length >= 2 && !_isCheckingInteractions
+                  ? _checkInteractions
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                disabledBackgroundColor: const Color(0xFFE5E7EB),
+              ),
+              child: _isCheckingInteractions
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : Text(
+                      'Check Interactions (${_selectedDrugs.length} drug${_selectedDrugs.length == 1 ? '' : 's'})',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildErrorMessage() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: const Color(0xFFFFF5F5),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _errorMessage!,
+              style: const TextStyle(fontSize: 14, color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  double _calculateSearchSectionHeight() {
+    // Base height: padding (16) + textfield (~56 with padding) + padding (16) = 88
+    double height = 65;
+    if (_suggestions.isNotEmpty) {
+      // Add margin (8) + suggestions list (max 200, but use actual count with padding)
+      final suggestionsHeight = (_suggestions.length * 56.0).clamp(0.0, 200.0);
+      height += 8 + suggestionsHeight;
+    }
+    // Add extra buffer to prevent overflow
+    return height + 20;
+  }
+
+  double _calculateSelectedDrugsSectionHeight() {
+    // Base: padding (16) + title (22) + spacing (12) = 50
+    double height = 20;
+    // Estimate chip height - each chip is ~36px with spacing
+    // Assume 3 chips per row on average, but be generous
+    final chipRows = (_selectedDrugs.length / 2.5)
+        .ceil(); // More generous estimate
+    height += chipRows * 44.0; // row height with spacing (more generous)
+    // Add spacing (12) + button (56 with padding) + padding (16)
+    height += 12 + 56 + 16;
+    // Add extra buffer to prevent overflow
+    return height + 30;
   }
 
   Widget _buildResults(
@@ -603,240 +669,284 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
         .where((i) => i.severity == InteractionSeverity.minor)
         .toList();
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Interaction Header (Interactions between your drugs)
-        if (header.isNotEmpty) ...[
-          Container(
-            padding: const EdgeInsets.all(16),
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  _getSeverityColorFromString(
-                    header['severity'],
-                  ).withOpacity(0.1),
-                  _getSeverityColorFromString(
-                    header['severity'],
-                  ).withOpacity(0.05),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _getSeverityColorFromString(header['severity']),
-                width: 2,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  header['header'] ?? '',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _getSeverityColorFromString(header['severity']),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        header['severity'] ?? '',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if ((header['drugs'] as List?)?.isNotEmpty ?? false) ...[
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: (header['drugs'] as List<dynamic>)
-                        .map(
-                          (drug) => Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: _getSeverityColorFromString(
+    return Builder(
+      builder: (context) {
+        return CustomScrollView(
+          slivers: [
+            SliverOverlapAbsorber(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+              sliver: SliverSafeArea(
+                top: false,
+                bottom: false,
+                sliver: SliverPadding(
+                  padding: const EdgeInsets.all(16),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // Interaction Header (Interactions between your drugs)
+                      if (header.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                _getSeverityColorFromString(
                                   header['severity'],
-                                ),
-                                width: 1.5,
-                              ),
+                                ).withOpacity(0.1),
+                                _getSeverityColorFromString(
+                                  header['severity'],
+                                ).withOpacity(0.05),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                            child: Text(
-                              drug.toString(),
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: _getSeverityColorFromString(
+                                header['severity'],
                               ),
+                              width: 2,
                             ),
                           ),
-                        )
-                        .toList(),
-                  ),
-                ],
-                if (header['description'] != null &&
-                    (header['description'] as String).isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: _getSeverityColorFromString(
-                          header['severity'],
-                        ).withOpacity(0.3),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        // Header with expansion button
-                        InkWell(
-                          onTap: () {
-                            setState(() {
-                              if (isConsumer) {
-                                _isConsumerHeaderExpanded =
-                                    !_isConsumerHeaderExpanded;
-                              } else {
-                                _isProfessionalHeaderExpanded =
-                                    !_isProfessionalHeaderExpanded;
-                              }
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.info_outline,
-                                  size: 18,
-                                  color: _getSeverityColorFromString(
-                                    header['severity'],
-                                  ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                header['header'] ?? '',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
                                 ),
-                                const SizedBox(width: 8),
-                                const Expanded(
-                                  child: Text(
-                                    'Description',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _getSeverityColorFromString(
+                                        header['severity'],
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      header['severity'] ?? '',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                Icon(
-                                  (isConsumer
-                                          ? _isConsumerHeaderExpanded
-                                          : _isProfessionalHeaderExpanded)
-                                      ? Icons.expand_less
-                                      : Icons.expand_more,
-                                  color: const Color(0xFF6B7280),
+                                ],
+                              ),
+                              if ((header['drugs'] as List?)?.isNotEmpty ??
+                                  false) ...[
+                                const SizedBox(height: 12),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: (header['drugs'] as List<dynamic>)
+                                      .map(
+                                        (drug) => Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: Border.all(
+                                              color:
+                                                  _getSeverityColorFromString(
+                                                    header['severity'],
+                                                  ),
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            drug.toString(),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
                                 ),
                               ],
+                              if (header['description'] != null &&
+                                  (header['description'] as String)
+                                      .isNotEmpty) ...[
+                                const SizedBox(height: 16),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: _getSeverityColorFromString(
+                                        header['severity'],
+                                      ).withOpacity(0.3),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      // Header with expansion button
+                                      InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            if (isConsumer) {
+                                              _isConsumerHeaderExpanded =
+                                                  !_isConsumerHeaderExpanded;
+                                            } else {
+                                              _isProfessionalHeaderExpanded =
+                                                  !_isProfessionalHeaderExpanded;
+                                            }
+                                          });
+                                        },
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(14),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.info_outline,
+                                                size: 18,
+                                                color:
+                                                    _getSeverityColorFromString(
+                                                      header['severity'],
+                                                    ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              const Expanded(
+                                                child: Text(
+                                                  'Description',
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ),
+                                              Icon(
+                                                (isConsumer
+                                                        ? _isConsumerHeaderExpanded
+                                                        : _isProfessionalHeaderExpanded)
+                                                    ? Icons.expand_less
+                                                    : Icons.expand_more,
+                                                color: const Color(0xFF6B7280),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      // Expandable content
+                                      if (isConsumer
+                                          ? _isConsumerHeaderExpanded
+                                          : _isProfessionalHeaderExpanded) ...[
+                                        const Divider(
+                                          height: 1,
+                                          color: Color(0xFFE5E7EB),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(14),
+                                          child: Text(
+                                            header['description'] as String,
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Color(0xFF374151),
+                                              height: 1.6,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+
+                      // Summary
+                      if (summaryText != null)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF9FAFB),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFE5E7EB)),
+                          ),
+                          child: Text(
+                            summaryText,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black,
                             ),
                           ),
                         ),
-                        // Expandable content
-                        if (isConsumer
-                            ? _isConsumerHeaderExpanded
-                            : _isProfessionalHeaderExpanded) ...[
-                          const Divider(height: 1, color: Color(0xFFE5E7EB)),
-                          Padding(
-                            padding: const EdgeInsets.all(14),
-                            child: Text(
-                              header['description'] as String,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF374151),
-                                height: 1.6,
-                              ),
-                            ),
-                          ),
-                        ],
+
+                      // Major interactions
+                      if (majorInteractions.isNotEmpty) ...[
+                        _buildSeverityHeader(
+                          'Major',
+                          majorInteractions.length,
+                          Colors.red,
+                        ),
+                        const SizedBox(height: 8),
+                        ...majorInteractions.map(
+                          (interaction) => _buildInteractionCard(interaction),
+                        ),
+                        const SizedBox(height: 16),
                       ],
-                    ),
+
+                      // Moderate interactions
+                      if (moderateInteractions.isNotEmpty) ...[
+                        _buildSeverityHeader(
+                          'Moderate',
+                          moderateInteractions.length,
+                          Colors.orange,
+                        ),
+                        const SizedBox(height: 8),
+                        ...moderateInteractions.map(
+                          (interaction) => _buildInteractionCard(interaction),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Minor interactions
+                      if (minorInteractions.isNotEmpty) ...[
+                        _buildSeverityHeader(
+                          'Minor',
+                          minorInteractions.length,
+                          Colors.grey,
+                        ),
+                        const SizedBox(height: 8),
+                        ...minorInteractions.map(
+                          (interaction) => _buildInteractionCard(interaction),
+                        ),
+                      ],
+                    ]),
                   ),
-                ],
-              ],
+                ),
+              ),
             ),
-          ),
-        ],
-
-        // Summary
-        if (summaryText != null)
-          Container(
-            padding: const EdgeInsets.all(16),
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF9FAFB),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFE5E7EB)),
+            SliverOverlapInjector(
+              handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
             ),
-            child: Text(
-              summaryText,
-              style: const TextStyle(fontSize: 14, color: Colors.black),
-            ),
-          ),
-
-        // Major interactions
-        if (majorInteractions.isNotEmpty) ...[
-          _buildSeverityHeader('Major', majorInteractions.length, Colors.red),
-          const SizedBox(height: 8),
-          ...majorInteractions.map(
-            (interaction) => _buildInteractionCard(interaction),
-          ),
-          const SizedBox(height: 16),
-        ],
-
-        // Moderate interactions
-        if (moderateInteractions.isNotEmpty) ...[
-          _buildSeverityHeader(
-            'Moderate',
-            moderateInteractions.length,
-            Colors.orange,
-          ),
-          const SizedBox(height: 8),
-          ...moderateInteractions.map(
-            (interaction) => _buildInteractionCard(interaction),
-          ),
-          const SizedBox(height: 16),
-        ],
-
-        // Minor interactions
-        if (minorInteractions.isNotEmpty) ...[
-          _buildSeverityHeader('Minor', minorInteractions.length, Colors.grey),
-          const SizedBox(height: 8),
-          ...minorInteractions.map(
-            (interaction) => _buildInteractionCard(interaction),
-          ),
-        ],
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -956,5 +1066,120 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
       default:
         return Colors.grey;
     }
+  }
+}
+
+// SliverPersistentHeaderDelegate for search section
+class _SearchSectionDelegate extends SliverPersistentHeaderDelegate {
+  final double minHeight;
+  final double maxHeight;
+  final Widget child;
+
+  _SearchSectionDelegate({
+    required this.minHeight,
+    required this.maxHeight,
+    required this.child,
+  });
+
+  @override
+  double get minExtent => minHeight;
+
+  @override
+  double get maxExtent => maxHeight;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final currentHeight = (maxHeight - shrinkOffset).clamp(
+      minHeight,
+      maxHeight,
+    );
+    return SizedBox(
+      height: currentHeight,
+      child: ClipRect(
+        child: Align(alignment: Alignment.topCenter, child: child),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SearchSectionDelegate oldDelegate) {
+    return maxHeight != oldDelegate.maxHeight ||
+        minHeight != oldDelegate.minHeight ||
+        child != oldDelegate.child;
+  }
+}
+
+// SliverPersistentHeaderDelegate for selected drugs section
+class _SelectedDrugsSectionDelegate extends SliverPersistentHeaderDelegate {
+  final double minHeight;
+  final double maxHeight;
+  final Widget child;
+
+  _SelectedDrugsSectionDelegate({
+    required this.minHeight,
+    required this.maxHeight,
+    required this.child,
+  });
+
+  @override
+  double get minExtent => minHeight;
+
+  @override
+  double get maxExtent => maxHeight;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    final currentHeight = (maxHeight - shrinkOffset).clamp(
+      minHeight,
+      maxHeight,
+    );
+    return SizedBox(
+      height: currentHeight,
+      child: ClipRect(
+        child: Align(alignment: Alignment.topCenter, child: child),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SelectedDrugsSectionDelegate oldDelegate) {
+    return maxHeight != oldDelegate.maxHeight ||
+        minHeight != oldDelegate.minHeight ||
+        child != oldDelegate.child;
+  }
+}
+
+// SliverPersistentHeaderDelegate for tab bar
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+
+  _TabBarDelegate({required this.child});
+
+  @override
+  double get minExtent => 48.0;
+
+  @override
+  double get maxExtent => 48.0;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return child;
+  }
+
+  @override
+  bool shouldRebuild(_TabBarDelegate oldDelegate) {
+    return child != oldDelegate.child;
   }
 }
