@@ -6,6 +6,8 @@ import '../models/drug_suggestion_model.dart';
 import '../models/interaction_drug_model.dart';
 import '../models/interaction_result_model.dart';
 import '../services/drugs_com_service.dart';
+import '../widgets/medical_disclaimer_banner.dart';
+import '../services/haptic_service.dart';
 
 class InteractionCheckerScreen extends StatefulWidget {
   const InteractionCheckerScreen({super.key});
@@ -18,6 +20,7 @@ class InteractionCheckerScreen extends StatefulWidget {
 class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
     with SingleTickerProviderStateMixin {
   final DrugsComService _service = DrugsComService();
+  final HapticService _hapticService = HapticService();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
 
@@ -96,12 +99,14 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
   }
 
   Future<void> _onDrugSelected(DrugSuggestion suggestion) async {
+    _hapticService.selectionClick();
     // Check if drug is already added
     if (_selectedDrugs.any(
       (drug) =>
           drug.ddcId == suggestion.ddcId &&
           drug.brandNameId == suggestion.brandNameId,
     )) {
+      _hapticService.lightImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Drug already added'),
@@ -161,6 +166,7 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
 
   Future<void> _checkInteractions() async {
     if (_selectedDrugs.length < 2) {
+      _hapticService.lightImpact();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please add at least 2 drugs to check interactions'),
@@ -169,6 +175,8 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
       );
       return;
     }
+
+    _hapticService.mediumImpact();
 
     setState(() {
       _isCheckingInteractions = true;
@@ -273,6 +281,13 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
               fontSize: 20,
             ),
           ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.info_outline, color: Colors.black),
+              onPressed: () => Navigator.pushNamed(context, '/about'),
+              tooltip: 'About & Disclaimer',
+            ),
+          ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
             child: Container(height: 1, color: const Color(0xFFE5E7EB)),
@@ -286,6 +301,8 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                   _professionalInteractions.isEmpty)
             ? Column(
                 children: [
+                  // Medical Disclaimer Banner
+                  const MedicalDisclaimerBanner(isCompact: true),
                   // Search section
                   _buildSearchSection(),
                   // Selected drugs section
@@ -325,6 +342,10 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                 headerSliverBuilder:
                     (BuildContext context, bool innerBoxIsScrolled) {
                       final slivers = <Widget>[
+                        // Medical Disclaimer Banner
+                        SliverToBoxAdapter(
+                          child: const MedicalDisclaimerBanner(isCompact: true),
+                        ),
                         // Search section sliver
                         SliverPersistentHeader(
                           pinned: false,
@@ -887,6 +908,50 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                       style: const TextStyle(fontSize: 14, color: Colors.black),
                     ),
                   ),
+
+                // Data Source Citation
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.source, color: Colors.blue.shade700, size: 18),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Drug interaction data provided by Drugs.com. ',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue.shade900,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/about');
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: Text(
+                          'View Citations',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
                 // Major interactions
                 if (majorInteractions.isNotEmpty) ...[

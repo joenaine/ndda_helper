@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
 import 'package:universal_html/html.dart' as html;
 import '../models/drug_model.dart';
+import '../services/haptic_service.dart';
 
 class DrugCard extends StatefulWidget {
   final Drug drug;
@@ -23,6 +24,7 @@ class DrugCard extends StatefulWidget {
 
 class _DrugCardState extends State<DrugCard> {
   bool _isExpanded = false;
+  final HapticService _hapticService = HapticService();
 
   @override
   Widget build(BuildContext context) {
@@ -201,6 +203,7 @@ class _DrugCardState extends State<DrugCard> {
                       children: [
                         InkWell(
                           onTap: () {
+                            _hapticService.selectionClick();
                             setState(() {
                               _isExpanded = !_isExpanded;
                             });
@@ -221,7 +224,10 @@ class _DrugCardState extends State<DrugCard> {
                         ),
                         const SizedBox(height: 4),
                         InkWell(
-                          onTap: _openOhlpLink,
+                          onTap: () {
+                            _hapticService.mediumImpact();
+                            _openOhlpLink();
+                          },
                           borderRadius: BorderRadius.circular(4),
                           child: Padding(
                             padding: const EdgeInsets.all(4),

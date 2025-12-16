@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'screens/home_screen.dart';
+import 'screens/about_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Skip Hive initialization on web as it can cause performance issues
   if (!kIsWeb) {
     await Hive.initFlutter();
+    // Initialize notification service
   }
   runApp(const MyApp());
 }
@@ -68,7 +70,10 @@ class MyApp extends StatelessWidget {
           bodySmall: TextStyle(color: Color(0xFF6B7280)),
         ),
       ),
-      home: const HomeScreen(),
+      routes: {
+        '/': (context) => const HomeScreen(),
+        '/about': (context) => const AboutScreen(),
+      },
     );
   }
 }

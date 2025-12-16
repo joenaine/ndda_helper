@@ -4,8 +4,10 @@ import '../models/drug_model.dart';
 import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../services/csv_service.dart';
+import '../services/haptic_service.dart';
 import '../widgets/drug_card.dart';
 import 'interaction_checker_screen.dart';
+import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final ApiService _apiService = ApiService();
   final StorageService _storageService = StorageService();
   final CsvService _csvService = CsvService();
+  final HapticService _hapticService = HapticService();
   final TextEditingController _searchController = TextEditingController();
 
   List<Drug> _allDrugs = [];
@@ -117,6 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _toggleDrugSelection(Drug drug) {
+    _hapticService.selectionClick();
     setState(() {
       if (_selectedDrugIds.contains(drug.id)) {
         _selectedDrugIds.remove(drug.id);
@@ -232,6 +236,20 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.medication_liquid, color: Colors.black),
               tooltip: 'Drug Interaction Checker',
             ),
+            // Settings button
+            IconButton(
+              onPressed: () {
+                _hapticService.selectionClick();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.settings, color: Colors.black),
+              tooltip: 'Settings',
+            ),
             // Reload button
             IconButton(
               onPressed: _isLoading ? null : _reloadData,
@@ -246,6 +264,47 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: Column(
           children: [
+            // Data Source Citation Banner
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF9FAFB),
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.source, size: 16, color: Color(0xFF6B7280)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Drug registry data from NDDA Kazakhstan',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/about'),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text(
+                      'Citations',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             // Search bar and filters
             Container(
               padding: const EdgeInsets.all(16),
