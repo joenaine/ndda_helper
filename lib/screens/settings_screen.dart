@@ -12,7 +12,6 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final HapticService _hapticService = HapticService();
-  bool _notificationsEnabled = false;
   bool _hapticsEnabled = true;
 
   @override
@@ -46,31 +45,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // Medical Disclaimer
           const MedicalDisclaimerBanner(),
           const SizedBox(height: 24),
-
-          // Notifications Section
-          _buildSection(
-            title: 'Notifications',
-            icon: Icons.notifications_outlined,
-            children: [
-              SwitchListTile(
-                title: const Text('Enable Notifications'),
-                subtitle: const Text(
-                  'Receive updates about drug registry changes and reminders',
-                ),
-                value: _notificationsEnabled,
-                onChanged: (value) {
-                  _hapticService.selectionClick();
-                  setState(() {
-                    _notificationsEnabled = value;
-                  });
-                },
-                activeTrackColor: Colors.black,
-                activeThumbColor: Colors.white,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
 
           // Haptics Section
           _buildSection(

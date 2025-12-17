@@ -9,7 +9,6 @@ void main() async {
   // Skip Hive initialization on web as it can cause performance issues
   if (!kIsWeb) {
     await Hive.initFlutter();
-    // Initialize notification service
   }
   runApp(const MyApp());
 }
