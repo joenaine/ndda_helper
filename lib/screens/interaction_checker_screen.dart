@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:nddahelper/widgets/app_hide_keyboard_widget.dart';
 import 'dart:async';
 import 'package:universal_html/html.dart' as html;
@@ -282,11 +283,13 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
             ),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.info_outline, color: Colors.black),
-              onPressed: () => Navigator.pushNamed(context, '/about'),
-              tooltip: 'About & Disclaimer',
-            ),
+            // About & Disclaimer button (hidden on web)
+            if (!kIsWeb)
+              IconButton(
+                icon: const Icon(Icons.info_outline, color: Colors.black),
+                onPressed: () => Navigator.pushNamed(context, '/about'),
+                tooltip: 'About & Disclaimer',
+              ),
           ],
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(1),
@@ -301,8 +304,8 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                   _professionalInteractions.isEmpty)
             ? Column(
                 children: [
-                  // Medical Disclaimer Banner
-                  const MedicalDisclaimerBanner(isCompact: true),
+                  // Medical Disclaimer Banner (hidden on web)
+                  if (!kIsWeb) const MedicalDisclaimerBanner(isCompact: true),
                   // Search section
                   _buildSearchSection(),
                   // Selected drugs section
@@ -342,10 +345,13 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                 headerSliverBuilder:
                     (BuildContext context, bool innerBoxIsScrolled) {
                       final slivers = <Widget>[
-                        // Medical Disclaimer Banner
-                        SliverToBoxAdapter(
-                          child: const MedicalDisclaimerBanner(isCompact: true),
-                        ),
+                        // Medical Disclaimer Banner (hidden on web)
+                        if (!kIsWeb)
+                          SliverToBoxAdapter(
+                            child: const MedicalDisclaimerBanner(
+                              isCompact: true,
+                            ),
+                          ),
                         // Search section sliver
                         SliverPersistentHeader(
                           pinned: false,
@@ -909,49 +915,54 @@ class _InteractionCheckerScreenState extends State<InteractionCheckerScreen>
                     ),
                   ),
 
-                // Data Source Citation
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.blue.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.source, color: Colors.blue.shade700, size: 18),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Drug interaction data provided by Drugs.com. ',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.blue.shade900,
+                // Data Source Citation (hidden on web)
+                if (!kIsWeb)
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.source,
+                          color: Colors.blue.shade700,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Drug interaction data provided by Drugs.com. ',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue.shade900,
+                            ),
                           ),
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/about');
-                        },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        child: Text(
-                          'View Citations',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.blue.shade700,
-                            fontWeight: FontWeight.w600,
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/about');
+                          },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: Text(
+                            'View Citations',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
                 // Major interactions
                 if (majorInteractions.isNotEmpty) ...[

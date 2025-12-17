@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:nddahelper/widgets/app_hide_keyboard_widget.dart';
 import '../models/drug_model.dart';
 import '../services/api_service.dart';
@@ -236,20 +237,21 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.medication_liquid, color: Colors.black),
               tooltip: 'Drug Interaction Checker',
             ),
-            // Settings button
-            IconButton(
-              onPressed: () {
-                _hapticService.selectionClick();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SettingsScreen(),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.settings, color: Colors.black),
-              tooltip: 'Settings',
-            ),
+            // Settings button (hidden on web)
+            if (!kIsWeb)
+              IconButton(
+                onPressed: () {
+                  _hapticService.selectionClick();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SettingsScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.settings, color: Colors.black),
+                tooltip: 'Settings',
+              ),
             // Reload button
             IconButton(
               onPressed: _isLoading ? null : _reloadData,
@@ -264,47 +266,55 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         body: Column(
           children: [
-            // Data Source Citation Banner
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: const BoxDecoration(
-                color: Color(0xFFF9FAFB),
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+            // Data Source Citation Banner (hidden on web)
+            if (!kIsWeb)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF9FAFB),
+                  border: Border(
+                    bottom: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.source,
+                      size: 16,
+                      color: Color(0xFF6B7280),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Drug registry data from NDDA Kazakhstan',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF6B7280),
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pushNamed(context, '/about'),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Citations',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.blue,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.source, size: 16, color: Color(0xFF6B7280)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Drug registry data from NDDA Kazakhstan',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF6B7280),
-                      ),
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () => Navigator.pushNamed(context, '/about'),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: const Text(
-                      'Citations',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
             // Search bar and filters
             Container(
               padding: const EdgeInsets.all(16),

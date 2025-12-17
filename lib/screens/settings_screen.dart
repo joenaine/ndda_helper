@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:nddahelper/services/haptic_service.dart';
 import 'package:nddahelper/widgets/medical_disclaimer_banner.dart';
 import 'about_screen.dart';
@@ -42,9 +43,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Medical Disclaimer
-          const MedicalDisclaimerBanner(),
-          const SizedBox(height: 24),
+          // Medical Disclaimer (hidden on web)
+          if (!kIsWeb) ...[
+            const MedicalDisclaimerBanner(),
+            const SizedBox(height: 24),
+          ],
 
           // Haptics Section
           _buildSection(
@@ -71,28 +74,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           const SizedBox(height: 16),
 
-          // About & Legal Section
-          _buildSection(
-            title: 'About & Legal',
-            icon: Icons.info_outline,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.description_outlined),
-                title: const Text('Medical Disclaimer & Citations'),
-                subtitle: const Text('View full disclaimer and data sources'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  _hapticService.selectionClick();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AboutScreen(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
+          // About & Legal Section (hidden on web)
+          if (!kIsWeb)
+            _buildSection(
+              title: 'About & Legal',
+              icon: Icons.info_outline,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.description_outlined),
+                  title: const Text('Medical Disclaimer & Citations'),
+                  subtitle: const Text('View full disclaimer and data sources'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    _hapticService.selectionClick();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AboutScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+
+          if (!kIsWeb) const SizedBox(height: 16),
 
           const SizedBox(height: 16),
 
@@ -155,4 +161,3 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
-
