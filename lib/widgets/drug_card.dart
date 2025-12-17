@@ -98,7 +98,7 @@ class _DrugCardState extends State<DrugCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Drug name
-                          Text(
+                          SelectableText(
                             widget.drug.name,
                             style: TextStyle(
                               fontSize: 16,
@@ -135,7 +135,7 @@ class _DrugCardState extends State<DrugCard> {
                                               : const Color(0xFFE5E7EB),
                                         ),
                                       ),
-                                      child: Text(
+                                      child: SelectableText(
                                         widget.drug.code!,
                                         style: TextStyle(
                                           fontSize: 12,
@@ -151,7 +151,7 @@ class _DrugCardState extends State<DrugCard> {
                                   ],
                                   if (widget.drug.atcName != null)
                                     Expanded(
-                                      child: Text(
+                                      child: SelectableText(
                                         widget.drug.atcName!,
                                         style: TextStyle(
                                           fontSize: 13,
@@ -159,8 +159,6 @@ class _DrugCardState extends State<DrugCard> {
                                               ? Colors.white.withOpacity(0.9)
                                               : const Color(0xFF6B7280),
                                         ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                 ],
@@ -168,7 +166,7 @@ class _DrugCardState extends State<DrugCard> {
                             ),
 
                           // Reg number and dosage form
-                          Text(
+                          SelectableText(
                             '${widget.drug.regNumber}${widget.drug.dosageFormName != null ? ' • ${widget.drug.dosageFormName}' : ''}',
                             style: TextStyle(
                               fontSize: 13,
@@ -179,18 +177,14 @@ class _DrugCardState extends State<DrugCard> {
                           ),
                           const SizedBox(height: 4),
 
-                          FittedBox // Producer and country
-                          (
-                            child: Text(
-                              '${widget.drug.producerNameRu} • ${widget.drug.countryNameRu}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: widget.isSelected
-                                    ? Colors.white.withOpacity(0.8)
-                                    : const Color(0xFF6B7280),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          // Producer and country
+                          SelectableText(
+                            '${widget.drug.producerNameRu} • ${widget.drug.countryNameRu}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: widget.isSelected
+                                  ? Colors.white.withOpacity(0.8)
+                                  : const Color(0xFF6B7280),
                             ),
                           ),
                         ],
@@ -425,7 +419,7 @@ class _DrugCardState extends State<DrugCard> {
         children: [
           SizedBox(
             width: 140,
-            child: Text(
+            child: SelectableText(
               label,
               style: TextStyle(
                 fontSize: 12,
@@ -437,7 +431,7 @@ class _DrugCardState extends State<DrugCard> {
             ),
           ),
           Expanded(
-            child: Text(
+            child: SelectableText(
               value,
               style: TextStyle(
                 fontSize: 12,
@@ -466,7 +460,7 @@ class _DrugCardState extends State<DrugCard> {
               : const Color(0xFFE5E7EB),
         ),
       ),
-      child: Text(
+      child: SelectableText(
         label,
         style: TextStyle(
           fontSize: 11,
