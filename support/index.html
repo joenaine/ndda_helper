@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Support page for Drug Helper Kz - Get help with drug registry search and management">
+    <title>Support - Drug Helper Kz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #000;
+            background: #fff;
+            padding: 0;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #000;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        section {
+            margin-bottom: 3rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #000;
+        }
+
+        .contact-info {
+            background: #f9f9f9;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .contact-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .contact-item strong {
+            min-width: 100px;
+            color: #000;
+        }
+
+        .contact-item a {
+            color: #000;
+            text-decoration: underline;
+            text-decoration-color: #666;
+            transition: text-decoration-color 0.2s;
+        }
+
+        .contact-item a:hover {
+            text-decoration-color: #000;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid #e5e5e5;
+            padding: 1.5rem 0;
+        }
+
+        .faq-item:first-child {
+            padding-top: 0;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #000;
+            font-size: 1.1rem;
+        }
+
+        .faq-answer {
+            color: #666;
+            line-height: 1.7;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #000;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #000;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn:active {
+            opacity: 0.6;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .message-status {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+
+        .message-status.show {
+            display: block;
+        }
+
+        .message-status.success {
+            background: #f0f9f0;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+        }
+
+        .message-status.error {
+            background: #fff5f5;
+            border: 1px solid #f44336;
+            color: #c62828;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        footer {
+            text-align: center;
+            padding-top: 2rem;
+            margin-top: 3rem;
+            border-top: 1px solid #e5e5e5;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1.5rem 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            h2 {
+                font-size: 1.25rem;
+            }
+
+            .contact-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .contact-item strong {
+                margin-bottom: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Support</h1>
+            <p class="subtitle">Drug Helper Kz - Drug Registry Assistant</p>
+        </header>
+
+        <section>
+            <h2>Contact Us</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <strong>Email:</strong>
+                    <a href="mailto:jandaulet.coder@gmail.com">jandaulet.coder@gmail.com</a>
+                </div>
+                <div class="contact-item">
+                    <strong>Response Time:</strong>
+                    <span>Within 24-48 hours</span>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Frequently Asked Questions</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">How do I search for drugs?</div>
+                <div class="faq-answer">
+                    Use the search bar at the top of the app. You can search by drug name, ATC code, registration number, or producer name. The search is case-insensitive and works with partial matches.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">How do I export selected drugs?</div>
+                <div class="faq-answer">
+                    Tap on drug cards to select them, then use the "Export" button at the bottom right. The selected drugs will be downloaded as a CSV file with all relevant information.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">How is data stored?</div>
+                <div class="faq-answer">
+                    Drug data is cached locally on your device after the first fetch. This allows for faster loading on subsequent uses. You can manually refresh the data using the refresh button in the app bar.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">Is the app free to use?</div>
+                <div class="faq-answer">
+                    Yes, Drug Helper Kz is free to use. It provides access to publicly available drug registry data from the Kazakhstan NDDA.
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Send us a Message</h2>
+            <div id="messageStatus" class="message-status"></div>
+            <form id="supportForm" onsubmit="handleSubmit(event)">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Subject</label>
+                    <input type="text" id="subject" name="subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" required></textarea>
+                </div>
+                <button type="submit" class="btn" id="submitBtn">
+                    <span id="btnText">Send Message</span>
+                </button>
+            </form>
+        </section>
+
+        <footer>
+            <p>&copy; 2025 Drug Helper Kz. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const messageStatus = document.getElementById('messageStatus');
+            
+            // Hide any previous status messages
+            messageStatus.classList.remove('show', 'success', 'error');
+            
+            // Disable button and show loading state
+            submitBtn.disabled = true;
+            btnText.innerHTML = '<span class="spinner"></span>Sending...';
+            
+            // Simulate sending message (2-3 second delay)
+            setTimeout(() => {
+                // Show success message
+                messageStatus.textContent = 'Thank you! Your message has been sent successfully. We will get back to you within 24-48 hours.';
+                messageStatus.classList.add('show', 'success');
+                
+                // Reset form
+                form.reset();
+                
+                // Re-enable button
+                submitBtn.disabled = false;
+                btnText.textContent = 'Send Message';
+                
+                // Scroll to success message
+                messageStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                
+                // Hide success message after 5 seconds
+                setTimeout(() => {
+                    messageStatus.classList.remove('show');
+                }, 5000);
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
