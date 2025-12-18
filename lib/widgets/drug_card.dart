@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
@@ -101,15 +102,18 @@ class _DrugCardState extends State<DrugCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Drug name
-                          SelectableText(
-                            widget.drug.name,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: widget.isSelected
-                                  ? Colors.white
-                                  : Colors.black,
-                              height: 1.4,
+                          GestureDetector(
+                            onTap: () => _copyToClipboard(widget.drug.name),
+                            child: Text(
+                              widget.drug.name,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: widget.isSelected
+                                    ? Colors.white
+                                    : Colors.black,
+                                height: 1.4,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -138,15 +142,19 @@ class _DrugCardState extends State<DrugCard> {
                                               : const Color(0xFFE5E7EB),
                                         ),
                                       ),
-                                      child: SelectableText(
-                                        widget.drug.code!,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          color: widget.isSelected
-                                              ? Colors.white
-                                              : Colors.black,
-                                          fontFamily: 'monospace',
+                                      child: GestureDetector(
+                                        onTap: () =>
+                                            _copyToClipboard(widget.drug.code!),
+                                        child: Text(
+                                          widget.drug.code!,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                            color: widget.isSelected
+                                                ? Colors.white
+                                                : Colors.black,
+                                            fontFamily: 'monospace',
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -154,13 +162,18 @@ class _DrugCardState extends State<DrugCard> {
                                   ],
                                   if (widget.drug.atcName != null)
                                     Expanded(
-                                      child: SelectableText(
-                                        widget.drug.atcName!,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: widget.isSelected
-                                              ? Colors.white.withOpacity(0.9)
-                                              : const Color(0xFF6B7280),
+                                      child: GestureDetector(
+                                        onTap: () => _copyToClipboard(
+                                          widget.drug.atcName!,
+                                        ),
+                                        child: Text(
+                                          widget.drug.atcName!,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: widget.isSelected
+                                                ? Colors.white.withOpacity(0.9)
+                                                : const Color(0xFF6B7280),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -169,25 +182,35 @@ class _DrugCardState extends State<DrugCard> {
                             ),
 
                           // Reg number and dosage form
-                          SelectableText(
-                            '${widget.drug.regNumber}${widget.drug.dosageFormName != null ? ' • ${widget.drug.dosageFormName}' : ''}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: widget.isSelected
-                                  ? Colors.white.withOpacity(0.8)
-                                  : const Color(0xFF6B7280),
+                          GestureDetector(
+                            onTap: () => _copyToClipboard(
+                              '${widget.drug.regNumber}${widget.drug.dosageFormName != null ? ' • ${widget.drug.dosageFormName}' : ''}',
+                            ),
+                            child: Text(
+                              '${widget.drug.regNumber}${widget.drug.dosageFormName != null ? ' • ${widget.drug.dosageFormName}' : ''}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: widget.isSelected
+                                    ? Colors.white.withOpacity(0.8)
+                                    : const Color(0xFF6B7280),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 4),
 
                           // Producer and country
-                          SelectableText(
-                            '${widget.drug.producerNameRu} • ${widget.drug.countryNameRu}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: widget.isSelected
-                                  ? Colors.white.withOpacity(0.8)
-                                  : const Color(0xFF6B7280),
+                          GestureDetector(
+                            onTap: () => _copyToClipboard(
+                              '${widget.drug.producerNameRu} • ${widget.drug.countryNameRu}',
+                            ),
+                            child: Text(
+                              '${widget.drug.producerNameRu} • ${widget.drug.countryNameRu}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: widget.isSelected
+                                    ? Colors.white.withOpacity(0.8)
+                                    : const Color(0xFF6B7280),
+                              ),
                             ),
                           ),
                         ],
@@ -316,6 +339,20 @@ class _DrugCardState extends State<DrugCard> {
         ],
       ),
     );
+  }
+
+  Future<void> _copyToClipboard(String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    _hapticService.lightImpact();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Copied to clipboard'),
+          backgroundColor: Colors.black,
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   Future<void> _openOhlpLink() async {
@@ -512,25 +549,31 @@ class _DrugCardState extends State<DrugCard> {
         children: [
           SizedBox(
             width: 140,
-            child: SelectableText(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: widget.isSelected
-                    ? Colors.white.withOpacity(0.7)
-                    : const Color(0xFF6B7280),
+            child: GestureDetector(
+              onTap: () => _copyToClipboard(label),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: widget.isSelected
+                      ? Colors.white.withOpacity(0.7)
+                      : const Color(0xFF6B7280),
+                ),
               ),
             ),
           ),
           Expanded(
-            child: SelectableText(
-              value,
-              style: TextStyle(
-                fontSize: 12,
-                color: widget.isSelected
-                    ? Colors.white.withOpacity(0.9)
-                    : Colors.black,
+            child: GestureDetector(
+              onTap: () => _copyToClipboard(value),
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: widget.isSelected
+                      ? Colors.white.withOpacity(0.9)
+                      : Colors.black,
+                ),
               ),
             ),
           ),
@@ -553,12 +596,15 @@ class _DrugCardState extends State<DrugCard> {
               : const Color(0xFFE5E7EB),
         ),
       ),
-      child: SelectableText(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-          color: widget.isSelected ? Colors.white : Colors.black,
+      child: GestureDetector(
+        onTap: () => _copyToClipboard(label),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: widget.isSelected ? Colors.white : Colors.black,
+          ),
         ),
       ),
     );
