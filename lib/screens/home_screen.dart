@@ -156,7 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      await _csvService.exportToCSV(selectedDrugs);
+      await _csvService.exportToCSV(selectedDrugs, context: context);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

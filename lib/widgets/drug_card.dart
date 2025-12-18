@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
 import 'package:universal_html/html.dart' as html;
+import 'package:cross_file/cross_file.dart';
+import 'package:path_provider/path_provider.dart';
 import '../models/drug_model.dart';
 import '../services/haptic_service.dart';
 
@@ -358,20 +361,110 @@ class _DrugCardState extends State<DrugCard> {
           final fileName = uri.pathSegments.isNotEmpty
               ? uri.pathSegments.last
               : 'ohlp_${widget.drug.id}.zip';
+          final finalFileName = fileName.contains('.')
+              ? fileName
+              : '$fileName.zip';
 
-          // Create XFile from downloaded bytes (it's a ZIP file)
-          final xFile = XFile.fromData(
-            response.bodyBytes,
-            mimeType: 'application/zip',
-            name: fileName.contains('.') ? fileName : '$fileName.zip',
-          );
+          // Write to temporary directory first for iOS compatibility
+          try {
+            final tempDir = await getTemporaryDirectory();
+            final file = File('${tempDir.path}/$finalFileName');
 
-          // Share the file so user can save/view it
-          await Share.shareXFiles(
-            [xFile],
-            subject: 'OHLP File - ${widget.drug.name}',
-            text: 'OHLP document for ${widget.drug.name}',
-          );
+            // Write bytes to file
+            await file.writeAsBytes(response.bodyBytes);
+
+            // Verify file exists before sharing
+            if (await file.exists()) {
+              final xFile = XFile(
+                file.path,
+                mimeType: 'application/zip',
+                name: finalFileName,
+              );
+
+              // Get share position origin for iOS (required for iPad)
+              Rect? sharePositionOrigin;
+              if (mounted && !kIsWeb) {
+                try {
+                  final size = MediaQuery.of(context).size;
+                  // Use center position
+                  // Ensure the rect is within screen bounds and non-zero
+                  const width = 100.0;
+                  const height = 100.0;
+                  final x = (size.width / 2 - width / 2).clamp(
+                    0.0,
+                    size.width - width,
+                  );
+                  final y = (size.height / 2 - height / 2).clamp(
+                    0.0,
+                    size.height - height,
+                  );
+                  if (x >= 0 &&
+                      y >= 0 &&
+                      width > 0 &&
+                      height > 0 &&
+                      x + width <= size.width &&
+                      y + height <= size.height) {
+                    sharePositionOrigin = Rect.fromLTWH(x, y, width, height);
+                  }
+                } catch (_) {
+                  // If MediaQuery fails, use null (will use default)
+                }
+              }
+
+              // Share the file so user can save/view it
+              await Share.shareXFiles(
+                [xFile],
+                subject: 'OHLP File - ${widget.drug.name}',
+                text: 'OHLP document for ${widget.drug.name}',
+                sharePositionOrigin: sharePositionOrigin,
+              );
+            } else {
+              throw Exception('File was not created successfully');
+            }
+          } catch (fileError) {
+            // Fallback: try Documents directory
+            try {
+              final directory = await getApplicationDocumentsDirectory();
+              final file = File('${directory.path}/$finalFileName');
+              await file.writeAsBytes(response.bodyBytes);
+
+              if (await file.exists()) {
+                final xFile = XFile(
+                  file.path,
+                  mimeType: 'application/zip',
+                  name: finalFileName,
+                );
+
+                // Get share position origin for iOS (required for iPad)
+                Rect? sharePositionOrigin;
+                if (mounted && !kIsWeb) {
+                  final box = context.findRenderObject() as RenderBox?;
+                  if (box != null && box.hasSize) {
+                    final size = MediaQuery.of(context).size;
+                    // Use center position
+                    sharePositionOrigin = Rect.fromLTWH(
+                      size.width / 2 - 50,
+                      size.height / 2 - 50,
+                      100,
+                      100,
+                    );
+                  }
+                }
+
+                await Share.shareXFiles(
+                  [xFile],
+                  subject: 'OHLP File - ${widget.drug.name}',
+                  text: 'OHLP document for ${widget.drug.name}',
+                  sharePositionOrigin: sharePositionOrigin,
+                );
+              } else {
+                throw Exception('File was not created successfully');
+              }
+            } catch (e2) {
+              // Re-throw to be caught by outer catch block
+              throw fileError;
+            }
+          }
 
           if (mounted) {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();

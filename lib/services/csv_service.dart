@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:universal_html/html.dart' as html;
@@ -10,7 +11,7 @@ import '../models/drug_model.dart';
 
 class CsvService {
   // Export selected drugs to CSV
-  Future<void> exportToCSV(List<Drug> drugs) async {
+  Future<void> exportToCSV(List<Drug> drugs, {BuildContext? context}) async {
     if (drugs.isEmpty) {
       return;
     }
@@ -87,33 +88,115 @@ class CsvService {
       html.document.body?.children.remove(anchor);
       html.Url.revokeObjectUrl(url);
     } else {
-      // Mobile platform - create XFile from bytes and share
+      // Mobile platform - write to temporary directory first, then share
+      // This ensures the file is accessible for sharing on iOS
       try {
-        // Create XFile directly from bytes - this works across all mobile platforms
-        final xFile = XFile.fromData(
-          bytes,
-          mimeType: 'text/csv',
-          name: fileName,
-        );
+        // Get temporary directory for file sharing
+        final tempDir = await getTemporaryDirectory();
+        final file = File('${tempDir.path}/$fileName');
 
-        // Share the file so user can save/view it
-        await Share.shareXFiles(
-          [xFile],
-          subject: 'NDDA Selected Drugs Export',
-          text: 'Exported ${drugs.length} drug(s) from NDDA Register',
-        );
-      } catch (e) {
-        // If sharing fails, try to save file first and then share
-        try {
-          final directory = await getApplicationDocumentsDirectory();
-          final file = File('${directory.path}/$fileName');
-          await file.writeAsBytes(bytes);
-          final xFile = XFile(file.path, mimeType: 'text/csv');
+        // Write bytes to file
+        await file.writeAsBytes(bytes);
+
+        // Verify file exists before sharing
+        if (await file.exists()) {
+          final xFile = XFile(file.path, mimeType: 'text/csv', name: fileName);
+
+          // Get share position origin for iOS (required for iPad)
+          Rect? sharePositionOrigin;
+          if (context != null && !kIsWeb) {
+            try {
+              final size = MediaQuery.of(context).size;
+              // Use bottom center position (where FAB typically is)
+              // Ensure the rect is within screen bounds and non-zero
+              const width = 112.0;
+              const height = 56.0;
+              final x = (size.width / 2 - width / 2).clamp(
+                0.0,
+                size.width - width,
+              );
+              final y = (size.height - height - 20).clamp(
+                0.0,
+                size.height - height,
+              );
+              if (x >= 0 &&
+                  y >= 0 &&
+                  width > 0 &&
+                  height > 0 &&
+                  x + width <= size.width &&
+                  y + height <= size.height) {
+                sharePositionOrigin = Rect.fromLTWH(x, y, width, height);
+              }
+            } catch (_) {
+              // If MediaQuery fails, use null (will use default)
+            }
+          }
+
+          // Share the file
           await Share.shareXFiles(
             [xFile],
             subject: 'NDDA Selected Drugs Export',
             text: 'Exported ${drugs.length} drug(s) from NDDA Register',
+            sharePositionOrigin: sharePositionOrigin,
           );
+        } else {
+          // If file doesn't exist, fall back to text sharing
+          await Share.share(csv, subject: 'NDDA Selected Drugs Export');
+        }
+      } catch (e) {
+        // If sharing fails, try Documents directory as fallback
+        try {
+          final directory = await getApplicationDocumentsDirectory();
+          final file = File('${directory.path}/$fileName');
+          await file.writeAsBytes(bytes);
+
+          if (await file.exists()) {
+            final xFile = XFile(
+              file.path,
+              mimeType: 'text/csv',
+              name: fileName,
+            );
+
+            // Get share position origin for iOS (required for iPad)
+            Rect? sharePositionOrigin;
+            if (context != null && !kIsWeb) {
+              try {
+                final size = MediaQuery.of(context).size;
+                // Use bottom center position (where FAB typically is)
+                // Ensure the rect is within screen bounds and non-zero
+                const width = 112.0;
+                const height = 56.0;
+                final x = (size.width / 2 - width / 2).clamp(
+                  0.0,
+                  size.width - width,
+                );
+                final y = (size.height - height - 20).clamp(
+                  0.0,
+                  size.height - height,
+                );
+                if (x >= 0 &&
+                    y >= 0 &&
+                    width > 0 &&
+                    height > 0 &&
+                    x + width <= size.width &&
+                    y + height <= size.height) {
+                  sharePositionOrigin = Rect.fromLTWH(x, y, width, height);
+                }
+              } catch (_) {
+                // If MediaQuery fails, use null (will use default)
+              }
+            }
+
+            await Share.shareXFiles(
+              [xFile],
+              subject: 'NDDA Selected Drugs Export',
+              text: 'Exported ${drugs.length} drug(s) from NDDA Register',
+              sharePositionOrigin: sharePositionOrigin,
+            );
+          } else {
+            // Last resort: share as text
+            await Share.share(csv, subject: 'NDDA Selected Drugs Export');
+          }
         } catch (e2) {
           // Last resort: share as text
           await Share.share(csv, subject: 'NDDA Selected Drugs Export');
