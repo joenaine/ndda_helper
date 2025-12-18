@@ -134,3 +134,4 @@ flutter_local_notifications: ^17.2.3
    - Haptic feedback functions properly
    - All native features work as expected
 
+
