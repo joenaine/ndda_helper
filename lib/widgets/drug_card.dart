@@ -9,6 +9,7 @@ import 'package:cross_file/cross_file.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/drug_model.dart';
 import '../services/haptic_service.dart';
+import '../services/knf_service.dart';
 
 class DrugCard extends StatefulWidget {
   final Drug drug;
@@ -29,6 +30,41 @@ class DrugCard extends StatefulWidget {
 class _DrugCardState extends State<DrugCard> {
   bool _isExpanded = false;
   final HapticService _hapticService = HapticService();
+  final KnfService _knfService = KnfService();
+  bool? _isInKnf;
+  bool _isCheckingKnf = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkKnfStatus();
+  }
+
+  void _checkKnfStatus() {
+    if (_isCheckingKnf) return;
+
+    setState(() {
+      _isCheckingKnf = true;
+    });
+
+    try {
+      _knfService.loadKnfData(); // Now instant, no async needed!
+      final isInKnf = _knfService.isDrugInKnf(widget.drug);
+      if (mounted) {
+        setState(() {
+          _isInKnf = isInKnf;
+          _isCheckingKnf = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isInKnf = false;
+          _isCheckingKnf = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,20 +137,56 @@ class _DrugCardState extends State<DrugCard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Drug name
-                          GestureDetector(
-                            onTap: () => _copyToClipboard(widget.drug.name),
-                            child: Text(
-                              widget.drug.name,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: widget.isSelected
-                                    ? Colors.white
-                                    : Colors.black,
-                                height: 1.4,
+                          // Drug name with КНФ indicator
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () =>
+                                      _copyToClipboard(widget.drug.name),
+                                  child: Text(
+                                    widget.drug.name,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: widget.isSelected
+                                          ? Colors.white
+                                          : Colors.black,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
+                              if (_isCheckingKnf)
+                                SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      widget.isSelected
+                                          ? Colors.white.withOpacity(0.7)
+                                          : const Color(0xFF6B7280),
+                                    ),
+                                  ),
+                                )
+                              else if (_isInKnf != null) ...[
+                                const SizedBox(width: 8),
+                                Icon(
+                                  _isInKnf == true
+                                      ? Icons.check_circle
+                                      : Icons.cancel,
+                                  size: 18,
+                                  color: _isInKnf == true
+                                      ? (widget.isSelected
+                                            ? Colors.green.shade300
+                                            : Colors.green)
+                                      : (widget.isSelected
+                                            ? Colors.red.shade300
+                                            : Colors.red),
+                                ),
+                              ],
+                            ],
                           ),
                           const SizedBox(height: 8),
 
@@ -182,18 +254,13 @@ class _DrugCardState extends State<DrugCard> {
                             ),
 
                           // Reg number and dosage form
-                          GestureDetector(
-                            onTap: () => _copyToClipboard(
-                              '${widget.drug.regNumber}${widget.drug.dosageFormName != null ? ' • ${widget.drug.dosageFormName}' : ''}',
-                            ),
-                            child: Text(
-                              '${widget.drug.regNumber}${widget.drug.dosageFormName != null ? ' • ${widget.drug.dosageFormName}' : ''}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: widget.isSelected
-                                    ? Colors.white.withOpacity(0.8)
-                                    : const Color(0xFF6B7280),
-                              ),
+                          Text(
+                            '${widget.drug.regNumber}${widget.drug.dosageFormName != null ? ' • ${widget.drug.dosageFormName}' : ''}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: widget.isSelected
+                                  ? Colors.white.withOpacity(0.8)
+                                  : const Color(0xFF6B7280),
                             ),
                           ),
                           const SizedBox(height: 4),

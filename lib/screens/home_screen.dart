@@ -6,6 +6,7 @@ import '../services/api_service.dart';
 import '../services/storage_service.dart';
 import '../services/csv_service.dart';
 import '../services/haptic_service.dart';
+import '../services/knf_service.dart';
 import '../widgets/drug_card.dart';
 import 'interaction_checker_screen.dart';
 import 'settings_screen.dart';
@@ -22,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final StorageService _storageService = StorageService();
   final CsvService _csvService = CsvService();
   final HapticService _hapticService = HapticService();
+  final KnfService _knfService = KnfService();
   final TextEditingController _searchController = TextEditingController();
 
   List<Drug> _allDrugs = [];
@@ -51,6 +53,9 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
+      // Preload КНФ data (instant, no async needed - data is compiled as Dart code)
+      _knfService.loadKnfData();
+
       // Load drugs
       final drugs = await _apiService.getDrugs();
 
