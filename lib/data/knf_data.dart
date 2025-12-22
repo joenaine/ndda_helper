@@ -52882,3 +52882,4 @@ const List<KnfEntry> knfData = [
   ),
   KnfEntry(atcCode: 'V10XX03', mnnOrGroup: 'Радия (223Ra) дихлорид'),
 ];
+

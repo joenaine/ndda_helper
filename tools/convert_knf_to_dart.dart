@@ -84,3 +84,4 @@ void main() async {
 String _escapeString(String str) {
   return "'${str.replaceAll("'", "\\'").replaceAll('\$', '\\\$')}'";
 }
+

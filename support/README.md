@@ -54,3 +54,4 @@ If you want to deploy this to a completely separate Firebase project:
 - ✅ FAQ section
 - ✅ No external dependencies
 - ✅ Single HTML file for easy deployment
+

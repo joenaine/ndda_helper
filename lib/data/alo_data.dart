@@ -1,297 +1,319 @@
-List sdf = [
-B01AC04				
-B01AC06				
-B01AC24				
-C01DA02				
-C01DA08				
-C07AB07				
-C08CA01				
-C10AA05				
-C01AA05				
-C03CA04				
-C03DA01				
-C07AB07				
-C07AG02				
-C09AA05				
-C09CA06				
-B01AA03				
-B01AC11				
-C02KX01				
-G04BE03						
-H02AB06				
-R03AC02				
-R03AK06				
-R03AK07				
-R03BA01				
-R03BA02				
-R03BA05				
-R03BA08				
-R03DC03				
-R03AC18				
-R03AK06				
-R03AK07				
-R03AL01				
-R03BB04				
-R03DX07				
-L01XE31				
-L04AX05				
-M01AE01				
-N02BE01				
-B01AE07				
-B01AF01				
-B01AF02				
-M01AE01				
-N02BE01				
-D08AC02				
-H02AB06				
-R06AX13				
-		
-J05AP55				
-J05AP51				
-J05AF07				
-L03AB11				
-L03AB10				
-A07EC02				
-H02AB06				
-L01BA01				
-L04AX01				
-L04AB04				
-L04AC05				
-A07EC02				
-H02AB06				
-L01BA01				
-L04AX01				
-L04AВ06				
-B02BX05				
-B03XA01				
-B03XA01				
-B03XA01				
-H02AB02				
-H02AB06				
-L01AA02				
-L01AA03				
-L01BA01				
-L01BB02				
-L01BC01				
-L01CA01				
-L01FC01				
-L01EA01/L01XE01				
-L01EA02/L01XE06				
-L01XE08/L01EA03				
-L01XE18				
-L01EL01				
-L01XX05				
-L01XX14				
-L03AB05				
-L04AD01				
-L04AX02				
-L04AX04				
-M05BA02				
-V03AC03				
-L01XE24				
-B02BD02				
-B02BD02				
-B02BD03				
-B02BD04				
-B02BD04				
-B02BD06				
-B02BD08				
-В02ВХ06				
-J06BA01/ J06BA02						
-A10BA02				
-A10BB09				
-A10BB12				
-A10BH05				
-A10BH02				
-A10BJ02				
-A10BJ05				
-A10BK01				
-A10BK02				
-A10BK03				
-A10AB04				
-A10AB05				
-A10AB06				
-A10AB01				
-A10AC01				
-A10AD01				
-A10AD04				
-A10AD05				
-A10AE04				
-A10AE05				
-A10AE06				
-H04AA01						
-G02CB01				
-G02CB03				
-H01CB02				
-H01CB03				
-H01AC01				
-L02AE04				
-М01СС01				
-A16AB02				
-A16AB03				
-A16AB04				
-A16AB05				
-A16AB09				
-А16АВ16				
-A16AB08				
-A16AB12				
-A09AA02				
-J01GB01				
-J01XB01				
-R05CB13				
-A05AA02				
-J01MA02				
-A16AA07							
-L01BA01				
-H02AB04				
-L04АВ01				
-H02AB04				
-L01BA01				
-L04AA13				
-L04AB06				
-L01XC02				
-L04AС07				
-H02AB04				
-L04AA06				
-L04AX01				
-P01BA02				
-H02AB04				
-H02AB06				
-L04AA06				
-L01BA01				
-C08CA01				
-L01AA01				
-L01BA01				
-C02KX01				
-D07AB09				
-H02AB06				
-H02AB04				
-А07ЕС01				
-М01АВ01				
-L04AB06				
-L04AB04						
-N03AX11				
-N03AG01				
-N05BA01				
-M03BX01				
-L03AB07				
-L03AB08				
-L03АВ13				
-L03AX13				
-L04AA31				
-L04AX07				
-L04AA23				
-L04AA36				
-N03AF01				
-N03AG01				
-N03AF02				
-N03AX09				
-N03AX11				
-N03AX14				
-H01AA02				
-N03AD01				
-N03AG04				
-N03AX03				
-N03AX18				
-N03AX22				
-N03AB02				
-N03AX15				
-N03AX17				
-N05BA09				
-N07AA01				
-N07AA02				
-H02AB06				
-H02AB13				
-M09AX03				
-M09AX07				
-N04AA01				
-N05AA01				
-N05AA02				
-N05AB06				
-N05AD01				
-N05AH02				
-N05AH03				
-N05AX08				
-N05AX13				
-N05BA01				
-N06AA09				
-N06AX16				
-N05AL05				
-N07BC02				
-A11HA02				
-J01CR02				
-J01FA09				
-J01GA01				
-J01GB04				
-J01GB06				
-J01MA12				
-J01MA14				
-J01XX08				
-J04AA01				
-J04AB01				
-J04AB02				
-J04AB30				
-J04AC01				
-J04AD01				
-J04AK01				
-J04AK02				
-J04AK05				
-J04AK06				
-J04AM02				
-J04AM06				
-J04BA01				
-J05AE10				
-J05AF01				
-J05AF05				
-J05AF06				
-J05AF07				
-J05AG01				
-J05AG04				
-J05AR01				
-J05AR02				
-J05AR03				
-J05AR10				
-J05AR13				
-J05AR14				
-J05AJ03/J05AX12				
-J05AR19				
-J05AR27				
-B03XA01				
-B03XA01				
-B03XA01				
-G03HA01				
-L01AX03				
-L01BC03				
-L01BC06				
-L01XC03				
-L01EA01/L01XE01				
-L01EB01/L01XE02				
-L01EB02				
-L01EX01/L01XE04				
-L01EX02				
-L01XE07				
-L01EB03				
-L01EC01				
-L01EC02				
-L01XE25/ L01EE01				
-L01EB04				
-L01EE02				
-L02AE02				
-L02AE03				
-L02AE04				
-L02BA01				
-L02BA02				
-L02BA03				
-L02BB03				
-L02BB04				
-L02BB05				
-L02BG03				
-L02BG04				
-L03AA02				
-L03AB04				
-L03AB05				
-L03AX03				
-M05BA02				
-M05BA08				
-D10BA01				
+/// Перечень Амбулаторного лекарственного обеспечения (АЛО)
+/// Приказ Министра здравоохранения Республики Казахстан от 5 августа 2021 года № ҚР ДСМ-75
+/// «Об утверждении перечня лекарственных средств и медицинских изделий, отпускаемых отдельным категориям граждан с определенными заболеваниями (состояниями) в рамках амбулаторного лекарственного обеспечения»
+///
+/// ATX codes for drugs covered under Ambulatory Drug Supply (ALO) program
+List<String> aloDrugCodes = [
+  'A02BC01',
+  'A03AX13',
+  'A03FA01',
+  'A05AA02',
+  'A06AB02',
+  'A06AD11',
+  'A07DA03',
+  'A07EC01',
+  'A07EC02',
+  'A09AA02',
+  'A10AB01',
+  'A10AB04',
+  'A10AB05',
+  'A10AB06',
+  'A10AC01',
+  'A10AD01',
+  'A10AD04',
+  'A10AD05',
+  'A10AE04',
+  'A10AE05',
+  'A10AE06',
+  'A10BA02',
+  'A10BB09',
+  'A10BB12',
+  'A10BH02',
+  'A10BH05',
+  'A10BJ02',
+  'A10BJ05',
+  'A10BK01',
+  'A10BK02',
+  'A10BK03',
+  'A11CC01',
+  'A11CC05',
+  'A11HA02',
+  'A16AA07',
+  'A16AB02',
+  'A16AB03',
+  'A16AB04',
+  'A16AB05',
+  'A16AB08',
+  'A16AB09',
+  'A16AB12',
+  'A16AB16',
+  'B01AA03',
+  'B01AC04',
+  'B01AC06',
+  'B01AC11',
+  'B01AC24',
+  'B01AE07',
+  'B01AF01',
+  'B01AF02',
+  'B02BD02',
+  'B02BD03',
+  'B02BD04',
+  'B02BD06',
+  'B02BD08',
+  'B02BX05',
+  'B02BX06',
+  'B03AA07',
+  'B03AE10',
+  'B03BB01',
+  'B03XA01',
+  'C01AA05',
+  'C01BC03',
+  'C01BD01',
+  'C01DA02',
+  'C01DA08',
+  'C02AC05',
+  'C02KX01',
+  'C03BA11',
+  'C03CA01',
+  'C03CA04',
+  'C03DA01',
+  'C07AA05',
+  'C07AB02',
+  'C07AB07',
+  'C07AG02',
+  'C08CA01',
+  'C08DA01',
+  'C09AA02',
+  'C09AA04',
+  'C09AA05',
+  'C09AA09',
+  'C09BA04',
+  'C09CA06',
+  'C10AA01',
+  'C10AA05',
+  'D01AA01',
+  'D01AC01',
+  'D01AE15',
+  'D07AA02',
+  'D07AB09',
+  'D07AC01',
+  'D07AC13',
+  'D08AC02',
+  'D10BA01',
+  'G02CB01',
+  'G02CB03',
+  'G03HA01',
+  'G04BE03',
+  'H01AA02',
+  'H01AC01',
+  'H01BA02',
+  'H01CB02',
+  'H01CB03',
+  'H02AB02',
+  'H02AB04',
+  'H02AB06',
+  'H02AB13',
+  'H03AA01',
+  'H03BB02',
+  'H04AA01',
+  'J01AA02',
+  'J01CA01',
+  'J01CA04',
+  'J01CR02',
+  'J01DC02',
+  'J01DD04',
+  'J01EE01',
+  'J01FA09',
+  'J01FA10',
+  'J01GA01',
+  'J01GB01',
+  'J01GB03',
+  'J01GB04',
+  'J01GB06',
+  'J01MA02',
+  'J01MA12',
+  'J01MA14',
+  'J01XB01',
+  'J01XX08',
+  'J02AC01',
+  'J02AC02',
+  'J04AA01',
+  'J04AB01',
+  'J04AB02',
+  'J04AB30',
+  'J04AC01',
+  'J04AD01',
+  'J04AK01',
+  'J04AK02',
+  'J04AK05',
+  'J04AK06',
+  'J04AM02',
+  'J04AM06',
+  'J04BA01',
+  'J05AB11',
+  'J05AE10',
+  'J05AF01',
+  'J05AF05',
+  'J05AF06',
+  'J05AF07',
+  'J05AG01',
+  'J05AG04',
+  'J05AJ03/J05AX12',
+  'J05AP01/J05AB04',
+  'J05AP51',
+  'J05AP55',
+  'J05AR01',
+  'J05AR02',
+  'J05AR03',
+  'J05AR10',
+  'J05AR13',
+  'J05AR14',
+  'J05AR19',
+  'J05AR27',
+  'J06BA01/J06BA02',
+  'L01AA01',
+  'L01AA02',
+  'L01AA03',
+  'L01AX03',
+  'L01BA01',
+  'L01BB02',
+  'L01BC01',
+  'L01BC03',
+  'L01BC06',
+  'L01CA01',
+  'L01EA01/L01XE01',
+  'L01EA02/L01XE06',
+  'L01EB01/L01XE02',
+  'L01EB02',
+  'L01EB03',
+  'L01EB04',
+  'L01EC01',
+  'L01EC02',
+  'L01EE02',
+  'L01EL01',
+  'L01EX01/L01XE04',
+  'L01EX02',
+  'L01FC01',
+  'L01XC02',
+  'L01XC03',
+  'L01XE07',
+  'L01XE08/L01EA03',
+  'L01XE18',
+  'L01XE24',
+  'L01XE25/L01EE01',
+  'L01XE31',
+  'L01XX05',
+  'L01XX14',
+  'L02AE02',
+  'L02AE03',
+  'L02AE04',
+  'L02BA01',
+  'L02BA02',
+  'L02BA03',
+  'L02BB03',
+  'L02BB04',
+  'L02BB05',
+  'L02BG03',
+  'L02BG04',
+  'L03AA02',
+  'L03AB04',
+  'L03AB05',
+  'L03AB07',
+  'L03AB08',
+  'L03AB10',
+  'L03AB11',
+  'L03AB13',
+  'L03AX03',
+  'L03AX13',
+  'L04AA06',
+  'L04AA13',
+  'L04AA23',
+  'L04AA31',
+  'L04AA36',
+  'L04AB01',
+  'L04AB04',
+  'L04AB06',
+  'L04AC05',
+  'L04AC07',
+  'L04AC16',
+  'L04AD01',
+  'L04AD02',
+  'L04AX01',
+  'L04AX02',
+  'L04AX04',
+  'L04AX05',
+  'L04AX07',
+  'M01AB01',
+  'M01AB05',
+  'M01AC06',
+  'M01AE01',
+  'M01AE03',
+  'M01CC01',
+  'M03BX01',
+  'M05BA02',
+  'M05BA08',
+  'M09AX03',
+  'M09AX07',
+  'N02AA01',
+  'N02AB03',
+  'N02AX02',
+  'N02BE01',
+  'N03AB02',
+  'N03AD01',
+  'N03AF01',
+  'N03AF02',
+  'N03AG01',
+  'N03AG04',
+  'N03AX03',
+  'N03AX09',
+  'N03AX11',
+  'N03AX14',
+  'N03AX15',
+  'N03AX17',
+  'N03AX18',
+  'N03AX22',
+  'N04AA01',
+  'N04BA02',
+  'N04BC05',
+  'N04BD02',
+  'N05AA01',
+  'N05AA02',
+  'N05AB06',
+  'N05AD01',
+  'N05AH02',
+  'N05AH03',
+  'N05AL05',
+  'N05AX08',
+  'N05AX13',
+  'N05BA01',
+  'N05BA09',
+  'N06AA09',
+  'N06AX16',
+  'N06DA02',
+  'N06DX01',
+  'N07AA01',
+  'N07AA02',
+  'N07BC02',
+  'P01BA02',
+  'R01AD01',
+  'R03AC02',
+  'R03AC18',
+  'R03AK06',
+  'R03AK07',
+  'R03AL01',
+  'R03BA01',
+  'R03BA02',
+  'R03BA05',
+  'R03BA08',
+  'R03BB04',
+  'R03DC03',
+  'R03DX07',
+  'R05CB13',
+  'R06AE07',
+  'R06AX13',
+  'S01EC01',
+  'S01ED01',
+  'S01EE01',
+  'V03AC03',
+  'V03AE02',
 ];

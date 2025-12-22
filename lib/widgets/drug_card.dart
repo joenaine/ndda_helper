@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import '../models/drug_model.dart';
 import '../services/haptic_service.dart';
 import '../services/knf_service.dart';
+import '../services/alo_service.dart';
 
 class DrugCard extends StatefulWidget {
   final Drug drug;
@@ -31,13 +32,17 @@ class _DrugCardState extends State<DrugCard> {
   bool _isExpanded = false;
   final HapticService _hapticService = HapticService();
   final KnfService _knfService = KnfService();
+  final AloService _aloService = AloService();
   bool? _isInKnf;
   bool _isCheckingKnf = false;
+  bool? _isInAlo;
+  bool _isCheckingAlo = false;
 
   @override
   void initState() {
     super.initState();
     _checkKnfStatus();
+    _checkAloStatus();
   }
 
   void _checkKnfStatus() {
@@ -61,6 +66,32 @@ class _DrugCardState extends State<DrugCard> {
         setState(() {
           _isInKnf = false;
           _isCheckingKnf = false;
+        });
+      }
+    }
+  }
+
+  void _checkAloStatus() {
+    if (_isCheckingAlo) return;
+
+    setState(() {
+      _isCheckingAlo = true;
+    });
+
+    try {
+      _aloService.loadAloData(); // Now instant, no async needed!
+      final isInAlo = _aloService.isDrugInAlo(widget.drug);
+      if (mounted) {
+        setState(() {
+          _isInAlo = isInAlo;
+          _isCheckingAlo = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isInAlo = false;
+          _isCheckingAlo = false;
         });
       }
     }
@@ -137,7 +168,7 @@ class _DrugCardState extends State<DrugCard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Drug name with КНФ indicator
+                          // Drug name with КНФ and АЛО indicators
                           Row(
                             children: [
                               Expanded(
@@ -157,6 +188,7 @@ class _DrugCardState extends State<DrugCard> {
                                   ),
                                 ),
                               ),
+                              // КНФ indicator
                               if (_isCheckingKnf)
                                 SizedBox(
                                   width: 16,
@@ -184,6 +216,52 @@ class _DrugCardState extends State<DrugCard> {
                                       : (widget.isSelected
                                             ? Colors.red.shade300
                                             : Colors.red),
+                                ),
+                              ],
+                              // АЛО indicator
+                              if (_isCheckingAlo)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        widget.isSelected
+                                            ? Colors.white.withOpacity(0.7)
+                                            : const Color(0xFF6B7280),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else if (_isInAlo != null) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _isInAlo == true
+                                        ? (widget.isSelected
+                                              ? Colors.green.shade300
+                                              : Colors.green)
+                                        : (widget.isSelected
+                                              ? Colors.red.shade300
+                                              : Colors.red),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'АЛО',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: widget.isSelected
+                                          ? Colors.black
+                                          : Colors.white,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ],
