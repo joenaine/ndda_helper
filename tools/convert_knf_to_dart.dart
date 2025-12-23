@@ -28,7 +28,6 @@ void main() async {
   for (int i = 0; i < jsonList.length; i++) {
     final entry = jsonList[i] as Map<String, dynamic>;
 
-    final number = entry['№']?.toString().trim();
     final atcCode =
         entry['Код анатомо-терапевтическо-химической (АТХ) классификации']
             ?.toString()
@@ -46,9 +45,6 @@ void main() async {
         .trim();
 
     buffer.write('  KnfEntry(');
-    if (number != null && number.isNotEmpty) {
-      buffer.write('number: ${_escapeString(number)}, ');
-    }
     if (atcCode != null && atcCode.isNotEmpty) {
       buffer.write('atcCode: ${_escapeString(atcCode)}, ');
     }

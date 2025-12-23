@@ -11,6 +11,7 @@ import '../models/drug_model.dart';
 import '../services/haptic_service.dart';
 import '../services/knf_service.dart';
 import '../services/alo_service.dart';
+import '../models/knf_result.dart';
 
 class DrugCard extends StatefulWidget {
   final Drug drug;
@@ -33,7 +34,7 @@ class _DrugCardState extends State<DrugCard> {
   final HapticService _hapticService = HapticService();
   final KnfService _knfService = KnfService();
   final AloService _aloService = AloService();
-  bool? _isInKnf;
+  KnfCheckResult? _knfResult;
   bool _isCheckingKnf = false;
   bool? _isInAlo;
   bool _isCheckingAlo = false;
@@ -54,17 +55,17 @@ class _DrugCardState extends State<DrugCard> {
 
     try {
       _knfService.loadKnfData(); // Now instant, no async needed!
-      final isInKnf = _knfService.isDrugInKnf(widget.drug);
+      final result = _knfService.checkDrug(widget.drug);
       if (mounted) {
         setState(() {
-          _isInKnf = isInKnf;
+          _knfResult = result;
           _isCheckingKnf = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _isInKnf = false;
+          _knfResult = null;
           _isCheckingKnf = false;
         });
       }
@@ -188,35 +189,83 @@ class _DrugCardState extends State<DrugCard> {
                                   ),
                                 ),
                               ),
-                              // КНФ indicator
+                              // КНФ indicators (strict + MNN)
                               if (_isCheckingKnf)
-                                SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      widget.isSelected
-                                          ? Colors.white.withOpacity(0.7)
-                                          : const Color(0xFF6B7280),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        widget.isSelected
+                                            ? Colors.white.withOpacity(0.7)
+                                            : const Color(0xFF6B7280),
+                                      ),
                                     ),
                                   ),
                                 )
-                              else if (_isInKnf != null) ...[
+                              else if (_knfResult != null) ...[
+                                // Strict КНФ badge
                                 const SizedBox(width: 8),
-                                Icon(
-                                  _isInKnf == true
-                                      ? Icons.check_circle
-                                      : Icons.cancel,
-                                  size: 18,
-                                  color: _isInKnf == true
-                                      ? (widget.isSelected
-                                            ? Colors.green.shade300
-                                            : Colors.green)
-                                      : (widget.isSelected
-                                            ? Colors.red.shade300
-                                            : Colors.red),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: _knfResult!.strict.inKnf
+                                        ? (widget.isSelected
+                                              ? Colors.green.shade300
+                                              : Colors.green)
+                                        : (widget.isSelected
+                                              ? Colors.red.shade300
+                                              : Colors.red),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'КНФ',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: widget.isSelected
+                                          ? Colors.black
+                                          : Colors.white,
+                                    ),
+                                  ),
                                 ),
+                                // КНФ МНН badge (only if strict failed)
+                                if (!_knfResult!.strict.inKnf &&
+                                    _knfResult!.mnn != null) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _knfResult!.mnn!.inKnfByMnn
+                                          ? (widget.isSelected
+                                                ? Colors.green.shade300
+                                                : Colors.green)
+                                          : (widget.isSelected
+                                                ? Colors.red.shade400
+                                                : Colors.red),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'КНФ МНН',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: widget.isSelected
+                                            ? Colors.black
+                                            : Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ],
                               // АЛО indicator
                               if (_isCheckingAlo)

@@ -10,6 +10,7 @@ import '../services/knf_service.dart';
 import '../widgets/drug_card.dart';
 import 'interaction_checker_screen.dart';
 import 'settings_screen.dart';
+import 'yellow_card_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -231,6 +232,20 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           actions: [
+            // Yellow Card Registration button
+            IconButton(
+              onPressed: () {
+                _hapticService.selectionClick();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const YellowCardScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.assignment, color: Colors.black),
+              tooltip: 'Yellow Card Registration',
+            ),
             // Drug Interaction Checker button
             IconButton(
               onPressed: () => Navigator.push(

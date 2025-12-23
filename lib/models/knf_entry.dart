@@ -1,5 +1,4 @@
 class KnfEntry {
-  final String? number;
   final String? atcCode;
   final String? mnnOrGroup;
   final String? tradeName;
@@ -7,7 +6,6 @@ class KnfEntry {
   final String? regNumber;
 
   const KnfEntry({
-    this.number,
     this.atcCode,
     this.mnnOrGroup,
     this.tradeName,
@@ -17,7 +15,6 @@ class KnfEntry {
 
   factory KnfEntry.fromJson(Map<String, dynamic> json) {
     return KnfEntry(
-      number: json['№']?.toString().trim(),
       atcCode: json['Код анатомо-терапевтическо-химической (АТХ) классификации']
           ?.toString()
           .trim(),
@@ -37,7 +34,6 @@ class KnfEntry {
 
   Map<String, dynamic> toJson() {
     return {
-      '№': number,
       'Код анатомо-терапевтическо-химической (АТХ) классификации': atcCode,
       'Фармакологическая группа/ Международное непатентованное наименование или состав':
           mnnOrGroup,
