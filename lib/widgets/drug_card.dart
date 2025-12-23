@@ -11,7 +11,11 @@ import '../models/drug_model.dart';
 import '../services/haptic_service.dart';
 import '../services/knf_service.dart';
 import '../services/alo_service.dart';
+import '../services/ed_service.dart';
+import '../services/mnn_price_service.dart';
 import '../models/knf_result.dart';
+
+final paddingData = EdgeInsets.symmetric(horizontal: 4, vertical: 1);
 
 class DrugCard extends StatefulWidget {
   final Drug drug;
@@ -34,16 +38,24 @@ class _DrugCardState extends State<DrugCard> {
   final HapticService _hapticService = HapticService();
   final KnfService _knfService = KnfService();
   final AloService _aloService = AloService();
+  final EdService _edService = EdService();
+  final MnnPriceService _mnnPriceService = MnnPriceService();
   KnfCheckResult? _knfResult;
   bool _isCheckingKnf = false;
   bool? _isInAlo;
   bool _isCheckingAlo = false;
+  bool? _isInEd;
+  bool _isCheckingEd = false;
+  String? _mnnPrice;
+  bool _isCheckingPrice = false;
 
   @override
   void initState() {
     super.initState();
     _checkKnfStatus();
     _checkAloStatus();
+    _checkEdStatus();
+    _checkMnnPrice();
   }
 
   void _checkKnfStatus() {
@@ -93,6 +105,58 @@ class _DrugCardState extends State<DrugCard> {
         setState(() {
           _isInAlo = false;
           _isCheckingAlo = false;
+        });
+      }
+    }
+  }
+
+  void _checkEdStatus() {
+    if (_isCheckingEd) return;
+
+    setState(() {
+      _isCheckingEd = true;
+    });
+
+    try {
+      _edService.loadEdData(); // Now instant, no async needed!
+      final isInEd = _edService.isDrugInEd(widget.drug);
+      if (mounted) {
+        setState(() {
+          _isInEd = isInEd;
+          _isCheckingEd = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isInEd = false;
+          _isCheckingEd = false;
+        });
+      }
+    }
+  }
+
+  void _checkMnnPrice() {
+    if (_isCheckingPrice) return;
+
+    setState(() {
+      _isCheckingPrice = true;
+    });
+
+    try {
+      _mnnPriceService.loadMnnPriceData(); // Now instant, no async needed!
+      final priceString = _mnnPriceService.getPriceStringForDrug(widget.drug);
+      if (mounted) {
+        setState(() {
+          _mnnPrice = priceString;
+          _isCheckingPrice = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _mnnPrice = null;
+          _isCheckingPrice = false;
         });
       }
     }
@@ -210,10 +274,7 @@ class _DrugCardState extends State<DrugCard> {
                                 // Strict КНФ badge
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
+                                  padding: paddingData,
                                   decoration: BoxDecoration(
                                     color: _knfResult!.strict.inKnf
                                         ? (widget.isSelected
@@ -240,10 +301,7 @@ class _DrugCardState extends State<DrugCard> {
                                     _knfResult!.mnn != null) ...[
                                   const SizedBox(width: 6),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
-                                    ),
+                                    padding: paddingData,
                                     decoration: BoxDecoration(
                                       color: _knfResult!.mnn!.inKnfByMnn
                                           ? (widget.isSelected
@@ -287,10 +345,7 @@ class _DrugCardState extends State<DrugCard> {
                               else if (_isInAlo != null) ...[
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
+                                  padding: paddingData,
                                   decoration: BoxDecoration(
                                     color: _isInAlo == true
                                         ? (widget.isSelected
@@ -303,6 +358,49 @@ class _DrugCardState extends State<DrugCard> {
                                   ),
                                   child: Text(
                                     'АЛО',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: widget.isSelected
+                                          ? Colors.black
+                                          : Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              // ЕД indicator
+                              if (_isCheckingEd)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        widget.isSelected
+                                            ? Colors.white.withOpacity(0.7)
+                                            : const Color(0xFF6B7280),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else if (_isInEd != null) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: paddingData,
+                                  decoration: BoxDecoration(
+                                    color: _isInEd == true
+                                        ? (widget.isSelected
+                                              ? Colors.green.shade300
+                                              : Colors.green)
+                                        : (widget.isSelected
+                                              ? Colors.red.shade300
+                                              : Colors.red),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'ЕД',
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
@@ -407,6 +505,53 @@ class _DrugCardState extends State<DrugCard> {
                               ),
                             ),
                           ),
+                          // МНН Price (if available)
+                          if (_mnnPrice != null && _mnnPrice!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            GestureDetector(
+                              onTap: () => _copyToClipboard(_mnnPrice!),
+                              child: Container(
+                                padding: paddingData,
+                                decoration: BoxDecoration(
+                                  color: widget.isSelected
+                                      ? Colors.white.withOpacity(0.15)
+                                      : const Color(0xFFF0F9FF),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(
+                                    color: widget.isSelected
+                                        ? Colors.white.withOpacity(0.3)
+                                        : const Color(0xFF3B82F6),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Предельная цена: ',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: widget.isSelected
+                                            ? Colors.white.withOpacity(0.9)
+                                            : const Color(0xFF1E40AF),
+                                      ),
+                                    ),
+                                    Text(
+                                      '$_mnnPrice ₸',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: widget.isSelected
+                                            ? Colors.white
+                                            : const Color(0xFF1E40AF),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

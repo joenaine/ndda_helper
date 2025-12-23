@@ -7,6 +7,8 @@ import '../services/storage_service.dart';
 import '../services/csv_service.dart';
 import '../services/haptic_service.dart';
 import '../services/knf_service.dart';
+import '../services/ed_service.dart';
+import '../services/mnn_price_service.dart';
 import '../widgets/drug_card.dart';
 import 'interaction_checker_screen.dart';
 import 'settings_screen.dart';
@@ -56,6 +58,14 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       // Preload КНФ data (instant, no async needed - data is compiled as Dart code)
       _knfService.loadKnfData();
+
+      // Preload ЕД data (instant, no async needed - data is compiled as Dart code)
+      final edService = EdService();
+      edService.loadEdData();
+
+      // Preload МНН Price data (instant, no async needed - data is compiled as Dart code)
+      final mnnPriceService = MnnPriceService();
+      mnnPriceService.loadMnnPriceData();
 
       // Load drugs
       final drugs = await _apiService.getDrugs();
