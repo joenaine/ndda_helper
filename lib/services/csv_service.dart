@@ -8,13 +8,31 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:universal_html/html.dart' as html;
 import '../models/drug_model.dart';
+import 'knf_service.dart';
+import 'alo_service.dart';
+import 'ed_service.dart';
+import 'orphan_service.dart';
+import 'mnn_price_service.dart';
 
 class CsvService {
+  final KnfService _knfService = KnfService();
+  final AloService _aloService = AloService();
+  final EdService _edService = EdService();
+  final OrphanService _orphanService = OrphanService();
+  final MnnPriceService _mnnPriceService = MnnPriceService();
+
   // Export selected drugs to CSV
   Future<void> exportToCSV(List<Drug> drugs, {BuildContext? context}) async {
     if (drugs.isEmpty) {
       return;
     }
+
+    // Load all data sources
+    _knfService.loadKnfData();
+    _aloService.loadAloData();
+    _edService.loadEdData();
+    _orphanService.loadOrphanData();
+    _mnnPriceService.loadMnnPriceData();
 
     // Define CSV headers
     List<List<dynamic>> rows = [
@@ -36,6 +54,12 @@ class CsvService {
         'Generic',
         'GMP',
         'Recipe Required',
+        'КНФ',
+        'КНФ МНН',
+        'АЛО',
+        'ЕД',
+        'ОРФАН',
+        'Предельная цена (₸)',
         'OHLP Download Link',
       ],
     ];
@@ -44,6 +68,30 @@ class CsvService {
     for (var drug in drugs) {
       final ohlpLink =
           'https://register.ndda.kz/register-backend/RegisterService/GetRegisterOhlpFile?registerId=${drug.id}&lang=ru';
+      
+      // Check КНФ status
+      final knfResult = _knfService.checkDrug(drug);
+      final knfStatus = knfResult.strict.inKnf ? 'Да' : 'Нет';
+      // КНФ МНН only relevant if not found in КНФ directly
+      final knfMnnStatus = knfResult.strict.inKnf 
+          ? '' 
+          : (knfResult.mnn != null && knfResult.mnn!.inKnfByMnn ? 'Да' : 'Нет');
+      
+      // Check АЛО status
+      final isInAlo = _aloService.isDrugInAlo(drug);
+      final aloStatus = isInAlo ? 'Да' : 'Нет';
+      
+      // Check ЕД status
+      final isInEd = _edService.isDrugInEd(drug);
+      final edStatus = isInEd ? 'Да' : 'Нет';
+      
+      // Check ОРФАН status
+      final isOrphan = _orphanService.isDrugOrphan(drug);
+      final orphanStatus = isOrphan ? 'Да' : 'Нет';
+      
+      // Get МНН price
+      final mnnPrice = _mnnPriceService.getPriceStringForDrug(drug);
+      
       rows.add([
         drug.id,
         drug.regNumber,
@@ -62,6 +110,12 @@ class CsvService {
         drug.genericSign ? 'Yes' : 'No',
         drug.gmpSign ? 'Yes' : 'No',
         drug.recipeSign ? 'Yes' : 'No',
+        knfStatus,
+        knfMnnStatus,
+        aloStatus,
+        edStatus,
+        orphanStatus,
+        mnnPrice ?? '',
         ohlpLink,
       ]);
     }
