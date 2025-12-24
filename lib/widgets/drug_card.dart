@@ -338,26 +338,34 @@ class _DrugCardState extends State<DrugCard> {
                               else if (_knfResult != null) ...[
                                 // Strict КНФ badge
                                 const SizedBox(width: 8),
-                                Container(
-                                  padding: paddingData,
-                                  decoration: BoxDecoration(
-                                    color: _knfResult!.strict.inKnf
-                                        ? (widget.isSelected
-                                              ? Colors.green.shade300
-                                              : Colors.green)
-                                        : (widget.isSelected
-                                              ? Colors.red.shade300
-                                              : Colors.red),
-                                    borderRadius: BorderRadius.circular(4),
+                                GestureDetector(
+                                  onTap: () => _showInfoBottomSheet(
+                                    'Казахстанский национальный формуляр (КНФ)',
+                                    'Перечень лекарственных средств, рекомендованных для применения в Республике Казахстан на основе принципов доказательной медицины.',
+                                    'Приказ Министра здравоохранения Республики Казахстан от 18 мая 2021 года № ҚР ДСМ-41 «Об утверждении Казахстанского национального формуляра лекарственных средств»',
+                                    'https://adilet.zan.kz/rus/docs/V2100022782',
                                   ),
-                                  child: Text(
-                                    'КНФ',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: widget.isSelected
-                                          ? Colors.black
-                                          : Colors.white,
+                                  child: Container(
+                                    padding: paddingData,
+                                    decoration: BoxDecoration(
+                                      color: _knfResult!.strict.inKnf
+                                          ? (widget.isSelected
+                                                ? Colors.green.shade300
+                                                : Colors.green)
+                                          : (widget.isSelected
+                                                ? Colors.red.shade300
+                                                : Colors.red),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'КНФ',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: widget.isSelected
+                                            ? Colors.black
+                                            : Colors.white,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -365,26 +373,34 @@ class _DrugCardState extends State<DrugCard> {
                                 if (!_knfResult!.strict.inKnf &&
                                     _knfResult!.mnn != null) ...[
                                   const SizedBox(width: 6),
-                                  Container(
-                                    padding: paddingData,
-                                    decoration: BoxDecoration(
-                                      color: _knfResult!.mnn!.inKnfByMnn
-                                          ? (widget.isSelected
-                                                ? Colors.green.shade300
-                                                : Colors.green)
-                                          : (widget.isSelected
-                                                ? Colors.red.shade400
-                                                : Colors.red),
-                                      borderRadius: BorderRadius.circular(4),
+                                  GestureDetector(
+                                    onTap: () => _showInfoBottomSheet(
+                                      'Казахстанский национальный формуляр (КНФ)',
+                                      'Перечень лекарственных средств, рекомендованных для применения в Республике Казахстан. Данный препарат найден по МНН (дженерик присутствует в формуляре).',
+                                      'Приказ Министра здравоохранения Республики Казахстан от 18 мая 2021 года № ҚР ДСМ-41 «Об утверждении Казахстанского национального формуляра лекарственных средств»',
+                                      'https://adilet.zan.kz/rus/docs/V2100022782',
                                     ),
-                                    child: Text(
-                                      'КНФ МНН',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                        color: widget.isSelected
-                                            ? Colors.black
-                                            : Colors.white,
+                                    child: Container(
+                                      padding: paddingData,
+                                      decoration: BoxDecoration(
+                                        color: _knfResult!.mnn!.inKnfByMnn
+                                            ? (widget.isSelected
+                                                  ? Colors.green.shade300
+                                                  : Colors.green)
+                                            : (widget.isSelected
+                                                  ? Colors.red.shade400
+                                                  : Colors.red),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        'КНФ МНН',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: widget.isSelected
+                                              ? Colors.black
+                                              : Colors.white,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -409,26 +425,34 @@ class _DrugCardState extends State<DrugCard> {
                                 )
                               else if (_isInAlo != null) ...[
                                 const SizedBox(width: 8),
-                                Container(
-                                  padding: paddingData,
-                                  decoration: BoxDecoration(
-                                    color: _isInAlo == true
-                                        ? (widget.isSelected
-                                              ? Colors.green.shade300
-                                              : Colors.green)
-                                        : (widget.isSelected
-                                              ? Colors.red.shade300
-                                              : Colors.red),
-                                    borderRadius: BorderRadius.circular(4),
+                                GestureDetector(
+                                  onTap: () => _showInfoBottomSheet(
+                                    'Перечень Амбулаторного лекарственного обеспечения (АЛО)',
+                                    'Перечень лекарственных средств и медицинских изделий, отпускаемых отдельным категориям граждан с определенными заболеваниями (состояниями) в рамках амбулаторного лекарственного обеспечения.',
+                                    'Приказ Министра здравоохранения Республики Казахстан от 5 августа 2021 года № ҚР ДСМ-75 «Об утверждении перечня лекарственных средств и медицинских изделий, отпускаемых отдельным категориям граждан с определенными заболеваниями (состояниями) в рамках амбулаторного лекарственного обеспечения»',
+                                    'https://adilet.zan.kz/rus/docs/V2100023885',
                                   ),
-                                  child: Text(
-                                    'АЛО',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: widget.isSelected
-                                          ? Colors.black
-                                          : Colors.white,
+                                  child: Container(
+                                    padding: paddingData,
+                                    decoration: BoxDecoration(
+                                      color: _isInAlo == true
+                                          ? (widget.isSelected
+                                                ? Colors.green.shade300
+                                                : Colors.green)
+                                          : (widget.isSelected
+                                                ? Colors.red.shade300
+                                                : Colors.red),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'АЛО',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: widget.isSelected
+                                            ? Colors.black
+                                            : Colors.white,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -452,26 +476,34 @@ class _DrugCardState extends State<DrugCard> {
                                 )
                               else if (_isInEd != null) ...[
                                 const SizedBox(width: 8),
-                                Container(
-                                  padding: paddingData,
-                                  decoration: BoxDecoration(
-                                    color: _isInEd == true
-                                        ? (widget.isSelected
-                                              ? Colors.green.shade300
-                                              : Colors.green)
-                                        : (widget.isSelected
-                                              ? Colors.red.shade300
-                                              : Colors.red),
-                                    borderRadius: BorderRadius.circular(4),
+                                GestureDetector(
+                                  onTap: () => _showInfoBottomSheet(
+                                    'Перечень ЛС закупаемые единым дистрибьютором',
+                                    'Перечень лекарственных средств и медицинских изделий, закупаемых у единого дистрибьютора для обеспечения системы здравоохранения.',
+                                    'Приказ Министра здравоохранения Республики Казахстан от 20 августа 2021 года № ҚР ДСМ-88 «Об определении перечня лекарственных средств и медицинских изделий, закупаемых у единого дистрибьютора»',
+                                    'https://adilet.zan.kz/rus/docs/V2100024078',
                                   ),
-                                  child: Text(
-                                    'ЕД',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: widget.isSelected
-                                          ? Colors.black
-                                          : Colors.white,
+                                  child: Container(
+                                    padding: paddingData,
+                                    decoration: BoxDecoration(
+                                      color: _isInEd == true
+                                          ? (widget.isSelected
+                                                ? Colors.green.shade300
+                                                : Colors.green)
+                                          : (widget.isSelected
+                                                ? Colors.red.shade300
+                                                : Colors.red),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'ЕД',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: widget.isSelected
+                                            ? Colors.black
+                                            : Colors.white,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -495,22 +527,30 @@ class _DrugCardState extends State<DrugCard> {
                                 )
                               else if (_isOrphan == true) ...[
                                 const SizedBox(width: 8),
-                                Container(
-                                  padding: paddingData,
-                                  decoration: BoxDecoration(
-                                    color: widget.isSelected
-                                        ? Colors.green.shade300
-                                        : Colors.green,
-                                    borderRadius: BorderRadius.circular(4),
+                                GestureDetector(
+                                  onTap: () => _showInfoBottomSheet(
+                                    'Орфанные заболевания и перечень лекарственных средств',
+                                    'Перечень орфанных заболеваний и лекарственных средств для их лечения. Орфанные (редкие) заболевания требуют специализированной терапии.',
+                                    'Приказ Министра здравоохранения Республики Казахстан от 20 октября 2020 года № ҚР ДСМ-142/2020 «Об утверждении перечня орфанных заболеваний и лекарственных средств для их лечения (орфанных)»',
+                                    'https://adilet.zan.kz/rus/docs/V2000021479',
                                   ),
-                                  child: Text(
-                                    'ОРФАН',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
+                                  child: Container(
+                                    padding: paddingData,
+                                    decoration: BoxDecoration(
                                       color: widget.isSelected
-                                          ? Colors.black
-                                          : Colors.white,
+                                          ? Colors.green.shade300
+                                          : Colors.green,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      'ОРФАН',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: widget.isSelected
+                                            ? Colors.black
+                                            : Colors.white,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -613,7 +653,12 @@ class _DrugCardState extends State<DrugCard> {
                           if (_mnnPrice != null && _mnnPrice!.isNotEmpty) ...[
                             const SizedBox(height: 4),
                             GestureDetector(
-                              onTap: () => _copyToClipboard(_mnnPrice!),
+                              onTap: () => _showInfoBottomSheet(
+                                'Предельные цены на МНН',
+                                'Предельные цены на международное непатентованное наименование лекарственного средства в рамках гарантированного объема бесплатной медицинской помощи и (или) в системе обязательного социального медицинского страхования.',
+                                'Приказ Министра здравоохранения Республики Казахстан от 4 сентября 2021 года № ҚР ДСМ-96 «Об утверждении предельных цен на международное непатентованное наименование лекарственного средства или техническую характеристику медицинского изделия в рамках гарантированного объема бесплатной медицинской помощи и (или) в системе обязательного социального медицинского страхования»',
+                                'https://adilet.zan.kz/rus/docs/V2100024253',
+                              ),
                               child: Container(
                                 padding: paddingData,
                                 decoration: BoxDecoration(
@@ -796,6 +841,159 @@ class _DrugCardState extends State<DrugCard> {
         ),
       );
     }
+  }
+
+  void _showInfoBottomSheet(
+    String title,
+    String description,
+    String orderInfo,
+    String url,
+  ) {
+    _hapticService.selectionClick();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      description,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade700,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Text(
+                        orderInfo,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black87,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: () async {
+                        await Clipboard.setData(ClipboardData(text: url));
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Ссылка скопирована'),
+                              backgroundColor: Colors.black,
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.blue.shade200),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.link,
+                              color: Colors.blue.shade700,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                url,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.blue.shade700,
+                                  decoration: TextDecoration.underline,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.copy,
+                              color: Colors.blue.shade700,
+                              size: 16,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text('Закрыть'),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _openOhlpLink() async {
