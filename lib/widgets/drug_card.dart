@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
 import 'package:http/http.dart' as http;
 import 'package:share_plus/share_plus.dart';
 import 'package:universal_html/html.dart' as html;
@@ -13,6 +13,7 @@ import '../services/knf_service.dart';
 import '../services/alo_service.dart';
 import '../services/ed_service.dart';
 import '../services/mnn_price_service.dart';
+import '../services/orphan_service.dart';
 import '../models/knf_result.dart';
 
 final paddingData = EdgeInsets.symmetric(horizontal: 4, vertical: 1);
@@ -40,6 +41,7 @@ class _DrugCardState extends State<DrugCard> {
   final AloService _aloService = AloService();
   final EdService _edService = EdService();
   final MnnPriceService _mnnPriceService = MnnPriceService();
+  final OrphanService _orphanService = OrphanService();
   KnfCheckResult? _knfResult;
   bool _isCheckingKnf = false;
   bool? _isInAlo;
@@ -48,6 +50,8 @@ class _DrugCardState extends State<DrugCard> {
   bool _isCheckingEd = false;
   String? _mnnPrice;
   bool _isCheckingPrice = false;
+  bool? _isOrphan;
+  bool _isCheckingOrphan = false;
 
   @override
   void initState() {
@@ -56,6 +60,25 @@ class _DrugCardState extends State<DrugCard> {
     _checkAloStatus();
     _checkEdStatus();
     _checkMnnPrice();
+    _checkOrphanStatus();
+  }
+
+  @override
+  void didUpdateWidget(DrugCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If drug changed, re-check all statuses
+    if (oldWidget.drug.id != widget.drug.id) {
+      if (kDebugMode) {
+        print(
+          'DrugCard: Drug changed from ${oldWidget.drug.id} to ${widget.drug.id}, rechecking',
+        );
+      }
+      _checkKnfStatus();
+      _checkAloStatus();
+      _checkEdStatus();
+      _checkMnnPrice();
+      _checkOrphanStatus();
+    }
   }
 
   void _checkKnfStatus() {
@@ -94,6 +117,11 @@ class _DrugCardState extends State<DrugCard> {
     try {
       _aloService.loadAloData(); // Now instant, no async needed!
       final isInAlo = _aloService.isDrugInAlo(widget.drug);
+      if (kDebugMode) {
+        print(
+          'DrugCard: ALO check for "${widget.drug.name}" (ID: ${widget.drug.id}): $isInAlo',
+        );
+      }
       if (mounted) {
         setState(() {
           _isInAlo = isInAlo;
@@ -101,6 +129,9 @@ class _DrugCardState extends State<DrugCard> {
         });
       }
     } catch (e) {
+      if (kDebugMode) {
+        print('DrugCard: ALO check error for "${widget.drug.name}": $e');
+      }
       if (mounted) {
         setState(() {
           _isInAlo = false;
@@ -157,6 +188,40 @@ class _DrugCardState extends State<DrugCard> {
         setState(() {
           _mnnPrice = null;
           _isCheckingPrice = false;
+        });
+      }
+    }
+  }
+
+  void _checkOrphanStatus() {
+    if (_isCheckingOrphan) return;
+
+    setState(() {
+      _isCheckingOrphan = true;
+    });
+
+    try {
+      _orphanService.loadOrphanData(); // Now instant, no async needed!
+      final isOrphan = _orphanService.isDrugOrphan(widget.drug);
+      if (kDebugMode) {
+        print(
+          'DrugCard: ORPHAN check for "${widget.drug.name}" (ID: ${widget.drug.id}): $isOrphan',
+        );
+      }
+      if (mounted) {
+        setState(() {
+          _isOrphan = isOrphan;
+          _isCheckingOrphan = false;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('DrugCard: ORPHAN check error for "${widget.drug.name}": $e');
+      }
+      if (mounted) {
+        setState(() {
+          _isOrphan = false;
+          _isCheckingOrphan = false;
         });
       }
     }
@@ -401,6 +466,45 @@ class _DrugCardState extends State<DrugCard> {
                                   ),
                                   child: Text(
                                     'ЕД',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: widget.isSelected
+                                          ? Colors.black
+                                          : Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              // ОРФАН indicator (only green, shown only if found)
+                              if (_isCheckingOrphan)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 8),
+                                  child: SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        widget.isSelected
+                                            ? Colors.white.withOpacity(0.7)
+                                            : const Color(0xFF6B7280),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else if (_isOrphan == true) ...[
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: paddingData,
+                                  decoration: BoxDecoration(
+                                    color: widget.isSelected
+                                        ? Colors.green.shade300
+                                        : Colors.green,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'ОРФАН',
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,

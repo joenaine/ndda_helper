@@ -9,6 +9,7 @@ import '../services/haptic_service.dart';
 import '../services/knf_service.dart';
 import '../services/ed_service.dart';
 import '../services/mnn_price_service.dart';
+import '../services/orphan_service.dart';
 import '../widgets/drug_card.dart';
 import 'interaction_checker_screen.dart';
 import 'settings_screen.dart';
@@ -66,6 +67,10 @@ class _HomeScreenState extends State<HomeScreen> {
       // Preload МНН Price data (instant, no async needed - data is compiled as Dart code)
       final mnnPriceService = MnnPriceService();
       mnnPriceService.loadMnnPriceData();
+
+      // Preload Orphan data (instant, no async needed - data is compiled as Dart code)
+      final orphanService = OrphanService();
+      orphanService.loadOrphanData();
 
       // Load drugs
       final drugs = await _apiService.getDrugs();
@@ -588,6 +593,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemBuilder: (context, index) {
                         final drug = _filteredDrugs[index];
                         return DrugCard(
+                          key: ValueKey(drug.id),
                           drug: drug,
                           isSelected: _selectedDrugIds.contains(drug.id),
                           onTap: () => _toggleDrugSelection(drug),
