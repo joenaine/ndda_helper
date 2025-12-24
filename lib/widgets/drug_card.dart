@@ -301,7 +301,7 @@ class _DrugCardState extends State<DrugCard> {
                           // Drug name with КНФ and АЛО indicators
                           Row(
                             children: [
-                              Expanded(
+                              Flexible(
                                 child: GestureDetector(
                                   onTap: () =>
                                       _copyToClipboard(widget.drug.name),
@@ -602,7 +602,7 @@ class _DrugCardState extends State<DrugCard> {
                                     const SizedBox(width: 8),
                                   ],
                                   if (widget.drug.atcName != null)
-                                    Expanded(
+                                    Flexible(
                                       child: GestureDetector(
                                         onTap: () => _copyToClipboard(
                                           widget.drug.atcName!,
@@ -635,17 +635,20 @@ class _DrugCardState extends State<DrugCard> {
                           const SizedBox(height: 4),
 
                           // Producer and country
-                          GestureDetector(
-                            onTap: () => _copyToClipboard(
-                              '${widget.drug.producerNameRu} • ${widget.drug.countryNameRu}',
-                            ),
-                            child: Text(
-                              '${widget.drug.producerNameRu} • ${widget.drug.countryNameRu}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: widget.isSelected
-                                    ? Colors.white.withOpacity(0.8)
-                                    : const Color(0xFF6B7280),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: GestureDetector(
+                              onTap: () => _copyToClipboard(
+                                '${widget.drug.producerNameRu} • ${widget.drug.countryNameRu}',
+                              ),
+                              child: Text(
+                                '${widget.drug.producerNameRu} • ${widget.drug.countryNameRu}',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: widget.isSelected
+                                      ? Colors.white.withOpacity(0.8)
+                                      : const Color(0xFF6B7280),
+                                ),
                               ),
                             ),
                           ),
@@ -1204,7 +1207,7 @@ class _DrugCardState extends State<DrugCard> {
               ),
             ),
           ),
-          Expanded(
+          Flexible(
             child: GestureDetector(
               onTap: () => _copyToClipboard(value),
               child: Text(
