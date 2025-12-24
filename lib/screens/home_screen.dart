@@ -29,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final HapticService _hapticService = HapticService();
   final KnfService _knfService = KnfService();
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   List<Drug> _allDrugs = [];
   List<Drug> _filteredDrugs = [];
@@ -36,17 +37,39 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   String? _errorMessage;
   bool _showSelectedOnly = false;
+  bool _showScrollToTop = false;
 
   @override
   void initState() {
     super.initState();
     _loadData();
     _searchController.addListener(_filterDrugs);
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    // Show scroll to top button when scrolled down more than 200 pixels
+    final showButton = _scrollController.offset > 200;
+    if (showButton != _showScrollToTop) {
+      setState(() {
+        _showScrollToTop = showButton;
+      });
+    }
+  }
+
+  void _scrollToTop() {
+    _hapticService.selectionClick();
+    _scrollController.animateTo(
+      0,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -236,6 +259,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.white,
         appBar: AppBar(
           elevation: 0,
+          centerTitle: false,
           backgroundColor: Colors.white,
           surfaceTintColor: Colors.white,
           title: const Text(
@@ -262,16 +286,17 @@ class _HomeScreenState extends State<HomeScreen> {
             //   tooltip: 'Yellow Card Registration',
             // ),
             // Drug Interaction Checker button
-            IconButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const InteractionCheckerScreen(),
+            if (!kIsWeb)
+              IconButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const InteractionCheckerScreen(),
+                  ),
                 ),
+                icon: const Icon(Icons.medication_liquid, color: Colors.black),
+                tooltip: 'Drug Interaction Checker',
               ),
-              icon: const Icon(Icons.medication_liquid, color: Colors.black),
-              tooltip: 'Drug Interaction Checker',
-            ),
             // Settings button (hidden on web)
             if (!kIsWeb)
               IconButton(
@@ -588,6 +613,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     )
                   : ListView.builder(
+                      controller: _scrollController,
                       padding: const EdgeInsets.all(16),
                       itemCount: _filteredDrugs.length,
                       itemBuilder: (context, index) {
@@ -605,32 +631,48 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
 
         // Floating action buttons
-        floatingActionButton: _selectedDrugIds.isEmpty
+        floatingActionButton: _selectedDrugIds.isEmpty && !_showScrollToTop
             ? null
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // Clear selection
-                  FloatingActionButton.extended(
-                    onPressed: _clearSelection,
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    elevation: 2,
-                    icon: const Icon(Icons.clear_all),
-                    label: const Text('Clear'),
-                  ),
-                  const SizedBox(height: 12),
+                  // Scroll to top button
+                  if (_showScrollToTop) ...[
+                    FloatingActionButton(
+                      onPressed: _scrollToTop,
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      elevation: 2,
+                      mini: true,
+                      child: const Icon(Icons.keyboard_arrow_up),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
 
-                  // Export button
-                  FloatingActionButton.extended(
-                    onPressed: _exportSelected,
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    elevation: 4,
-                    icon: const Icon(Icons.download),
-                    label: Text('Export (${_selectedDrugIds.length})'),
-                  ),
+                  // Clear selection and export buttons (only when drugs are selected)
+                  if (_selectedDrugIds.isNotEmpty) ...[
+                    // Clear selection
+                    FloatingActionButton.extended(
+                      onPressed: _clearSelection,
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      elevation: 2,
+                      icon: const Icon(Icons.clear_all),
+                      label: const Text('Clear'),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Export button
+                    FloatingActionButton.extended(
+                      onPressed: _exportSelected,
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      icon: const Icon(Icons.download),
+                      label: Text('Export (${_selectedDrugIds.length})'),
+                    ),
+                  ],
                 ],
               ),
       ),
