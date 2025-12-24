@@ -272,19 +272,19 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           actions: [
             // Yellow Card Registration button
-            // IconButton(
-            //   onPressed: () {
-            //     _hapticService.selectionClick();
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (context) => const YellowCardScreen(),
-            //       ),
-            //     );
-            //   },
-            //   icon: const Icon(Icons.assignment, color: Colors.black),
-            //   tooltip: 'Yellow Card Registration',
-            // ),
+            IconButton(
+              onPressed: () {
+                _hapticService.selectionClick();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const YellowCardScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.assignment, color: Colors.black),
+              tooltip: 'Yellow Card Registration',
+            ),
             // Drug Interaction Checker button
             if (!kIsWeb)
               IconButton(
