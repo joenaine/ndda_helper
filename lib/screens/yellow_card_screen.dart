@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:nddahelper/widgets/app_hide_keyboard_widget.dart';
 import '../widgets/meddra_selector_dialog.dart';
+import '../services/yellow_card_service.dart';
+import '../services/yellow_card_debug.dart';
 
 class YellowCardScreen extends StatefulWidget {
   const YellowCardScreen({super.key});
@@ -127,61 +129,69 @@ class _YellowCardScreenState extends State<YellowCardScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Желтая карта - Сообщение о побочных действиях ЛС'),
-        actions: [
-          // Toggle switch for required fields only
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              children: [
-                const Text(
-                  'Только обязательные',
-                  style: TextStyle(fontSize: 12),
-                ),
-                Switch(
-                  value: _showOnlyRequired,
-                  onChanged: (value) {
-                    setState(() {
-                      _showOnlyRequired = value;
-                    });
-                  },
-                ),
-              ],
+    return AppHideKeyBoardWidget(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Желтая карта - Сообщение о побочных действиях ЛС'),
+          actions: [
+            // Debug test button
+            IconButton(
+              icon: const Icon(Icons.bug_report),
+              tooltip: 'Test Submit (Debug)',
+              onPressed: _testSubmit,
             ),
+            // Toggle switch for required fields only
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                children: [
+                  const Text(
+                    'Только обязательные',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  Switch(
+                    value: _showOnlyRequired,
+                    onChanged: (value) {
+                      setState(() {
+                        _showOnlyRequired = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+          bottom: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            tabs: const [
+              Tab(text: '1. Общая информация'),
+              Tab(text: '2. Пациент'),
+              Tab(text: '3. Беременность'),
+              Tab(text: '4. Препарат'),
+              Tab(text: '5. Побочные действия'),
+              Tab(text: '6. Сопутствующие ЛС'),
+              Tab(text: '7. Анамнез'),
+            ],
           ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabs: const [
-            Tab(text: '1. Общая информация'),
-            Tab(text: '2. Пациент'),
-            Tab(text: '3. Беременность'),
-            Tab(text: '4. Препарат'),
-            Tab(text: '5. Побочные действия'),
-            Tab(text: '6. Сопутствующие ЛС'),
-            Tab(text: '7. Анамнез'),
-          ],
         ),
-      ),
-      body: Form(
-        key: _formKey,
-        child: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildGeneralInfoTab(),
-            _buildPatientInfoTab(),
-            _buildPregnancyTab(),
-            _buildDrugTab(),
-            _buildSideEffectsTab(),
-            _buildAccompanyingDrugsTab(),
-            _buildMedicalHistoryTab(),
-          ],
+        body: Form(
+          key: _formKey,
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildGeneralInfoTab(),
+              _buildPatientInfoTab(),
+              _buildPregnancyTab(),
+              _buildDrugTab(),
+              _buildSideEffectsTab(),
+              _buildAccompanyingDrugsTab(),
+              _buildMedicalHistoryTab(),
+            ],
+          ),
         ),
+        bottomNavigationBar: _buildBottomBar(),
       ),
-      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
@@ -1322,22 +1332,403 @@ class _YellowCardScreenState extends State<YellowCardScreen>
     );
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Форма успешно сохранена'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      // TODO: Implement actual submission logic
-    } else {
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Пожалуйста, заполните все обязательные поля'),
           backgroundColor: Colors.red,
         ),
       );
+      return;
+    }
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Отправка формы...'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      // Prepare submission data
+      final submissionData = YellowCardSubmissionData(
+        // Section 1: General Information
+        messageType: _messageType,
+        messageKind: _messageKind,
+        messageDate: _messageDate != null
+            ? DateFormat('dd.MM.yyyy').format(_messageDate!)
+            : '',
+        orgName: _orgNameController.text,
+        orgCity: _orgCity,
+        orgAddress: _orgAddressController.text,
+        orgPhone: _orgPhoneController.text,
+        orgEmail: _orgEmailController.text,
+        sourceType: _sourceType,
+        sourceName: _sourceNameController.text,
+        sourcePhone: _sourcePhoneController.text,
+        sourceEmail: _sourceEmailController.text,
+
+        // Section 2: Patient Information
+        patientName: _patientNameController.text,
+        medRecordNumber: _medRecordController.text,
+        patientBirthdate: _patientBirthdate != null
+            ? DateFormat('dd.MM.yyyy').format(_patientBirthdate!)
+            : '',
+        patientAge: _patientAgeController.text,
+        patientSex: _mapSexToValue(_patientSex),
+        patientHeight: _patientHeightController.text,
+        patientWeight: _patientWeightController.text,
+        additionalPatientInfo: _additionalPatientInfoController.text,
+        patientNationality: _patientNationality,
+        diagnosisPrimary: _diagnosisPrimaryController.text,
+        diagnosisSecondary: _diagnosisSecondaryController.text,
+
+        // Section 3: Pregnancy Information
+        isPregnant: _isPregnant == null ? '' : (_isPregnant! ? '1' : '0'),
+        lastMenstrualDate: _lastMenstrualDate != null
+            ? DateFormat('dd.MM.yyyy').format(_lastMenstrualDate!)
+            : '',
+        expectedDueDate: _expectedDueDate != null
+            ? DateFormat('dd.MM.yyyy').format(_expectedDueDate!)
+            : '',
+        fetusCount: _fetusCountController.text,
+        conceivingType: _conceivingType,
+        pregnancyOutcome: _pregnancyOutcome,
+        actualDueDate: _actualDueDate != null
+            ? DateFormat('dd.MM.yyyy').format(_actualDueDate!)
+            : '',
+        gestationalDate: _gestationalDate != null
+            ? DateFormat('dd.MM.yyyy').format(_gestationalDate!)
+            : '',
+        deliveryType: _deliveryType,
+        childWeight: _childWeightController.text,
+        childHeight: _childHeightController.text,
+        childSex: _childSex,
+        apgar1Min: _apgar1MinController.text,
+        apgar5Min: _apgar5MinController.text,
+        apgar10Min: _apgar10MinController.text,
+
+        // Section 4: Suspected Drugs
+        suspectedDrugs: _suspectedDrugs.map((drug) {
+          return SuspectedDrugData(
+            name: drug.nameController.text,
+            startDate: drug.startDate != null
+                ? DateFormat('dd.MM.yyyy').format(drug.startDate!)
+                : '',
+            endDate: drug.endDate != null
+                ? DateFormat('dd.MM.yyyy').format(drug.endDate!)
+                : '',
+            route: drug.route,
+            batch: drug.batchController.text,
+            indications: drug.indicationsController.text,
+            action: drug.action,
+          );
+        }).toList(),
+
+        // Section 5: Side Effects
+        sideEffects: _sideEffects.map((effect) {
+          return SideEffectData(
+            effect: effect.effectController.text,
+            outcome: effect.outcome,
+            relation: effect.relation,
+          );
+        }).toList(),
+        areSideEffectsSerious: _areSideEffectsSerious == null
+            ? ''
+            : (_areSideEffectsSerious! ? '1' : '0'),
+        seriousReason: _seriousReason,
+        causeOfDeath: _causeOfDeathController.text,
+
+        // Section 6: Accompanying Drugs
+        accompanyingDrugs: _accompanyingDrugs.map((drug) {
+          return AccompanyingDrugData(
+            name: drug.nameController.text,
+            dosageForm: drug.dosageFormController.text,
+            dose: drug.doseController.text,
+            startDate: drug.startDate != null
+                ? DateFormat('dd.MM.yyyy').format(drug.startDate!)
+                : '',
+            endDate: drug.endDate != null
+                ? DateFormat('dd.MM.yyyy').format(drug.endDate!)
+                : '',
+            indications: drug.indicationsController.text,
+            action: drug.action,
+          );
+        }).toList(),
+
+        // Section 7: Medical History
+        medicalHistory: _medicalHistory.map((history) {
+          return MedicalHistoryData(
+            name: history.nameController.text,
+            continues: history.continues == null
+                ? ''
+                : (history.continues! ? '1' : '0'),
+          );
+        }).toList(),
+      );
+
+      // Submit the form
+      final response = await YellowCardService.submitYellowCard(submissionData);
+
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Show result
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(response.success ? 'Успешно' : 'Ошибка'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(response.message),
+                  if (!response.success && response.statusCode == 401) ...[
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Пожалуйста, войдите в систему NDDA через раздел Настройки.',
+                      style: TextStyle(fontStyle: FontStyle.italic),
+                    ),
+                  ],
+                  if (!response.success &&
+                      response.responseBody != null &&
+                      response.statusCode != 401) ...[
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Детали ошибки:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        response.responseBody!.length > 500
+                            ? '${response.responseBody!.substring(0, 500)}...'
+                            : response.responseBody!,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            icon: Icon(
+              response.success
+                  ? Icons.check_circle
+                  : (response.statusCode == 401 ? Icons.lock : Icons.error),
+              color: response.success
+                  ? Colors.green
+                  : (response.statusCode == 401 ? Colors.orange : Colors.red),
+              size: 64,
+            ),
+            actions: [
+              if (!response.success && response.statusCode == 401)
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); // Go back to previous screen
+                    // User can then navigate to Settings to login
+                  },
+                  child: const Text('Перейти к настройкам'),
+                ),
+              if (!response.success && response.statusCode != 401)
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // Show logs in console
+                    print('Full response body: ${response.responseBody}');
+                  },
+                  child: const Text('Показать полный лог'),
+                ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  if (response.success) {
+                    // Optionally navigate back or reset form
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Show error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  String _mapSexToValue(String? sex) {
+    if (sex == null) return '';
+    switch (sex) {
+      case 'Мужской':
+        return '1';
+      case 'Женский':
+        return '0';
+      case 'Неизвестно':
+        return '2';
+      default:
+        return '';
+    }
+  }
+
+  Future<void> _testSubmit() async {
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Test Submission'),
+        content: const Text('Choose test data to submit:'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'minimal'),
+            child: const Text('Minimal (Required Only)'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, 'complete'),
+            child: const Text('Complete Data'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (choice == null) return;
+
+    // Show loading dialog
+    if (mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Testing submission...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    try {
+      final testData = choice == 'minimal'
+          ? YellowCardDebug.getMinimalTestData()
+          : YellowCardDebug.getCompleteTestData();
+
+      // Print debug info
+      YellowCardDebug.printFormData(testData);
+
+      // Submit
+      final response = await YellowCardService.submitYellowCard(testData);
+
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Show result
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(response.success ? 'Test Success' : 'Test Failed'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(response.message),
+                  if (response.responseBody != null) ...[
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Server Response:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        response.responseBody!.length > 1000
+                            ? '${response.responseBody!.substring(0, 1000)}...'
+                            : response.responseBody!,
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Show error
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Test Error'),
+            content: Text('Exception: $e'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 }

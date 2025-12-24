@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Yellow Card Test Submission</title>
+</head>
+<body>
+    <h1>Yellow Card Test Submission</h1>
+    <p>This form sends the exact same data as our app. Use this to test in a browser.</p>
+    
+    <form action="https://www.ndda.kz/register.php/sideeffects/new/lang/ru" method="POST">
+        <h2>Required Fields</h2>
+        
+        <!-- Organization -->
+        <label>Organization Name *</label><br>
+        <input type="text" name="PDLScard[org_name]" value="Test Organization" required><br><br>
+        
+        <!-- Patient Info -->
+        <label>Patient Name *</label><br>
+        <input type="text" name="PDLScard[patient_name]" value="T.T.T" required><br><br>
+        
+        <label>Patient Age *</label><br>
+        <input type="text" name="PDLScard[patient_age]" value="30" required><br><br>
+        
+        <label>Patient Sex * (0=Female, 1=Male, 2=Unknown)</label><br>
+        <input type="text" name="PDLScard[patient_sex]" value="1" required><br><br>
+        
+        <label>Primary Diagnosis *</label><br>
+        <input type="text" name="PDLScard[diagnosis_primary]" value="Test Diagnosis" required><br><br>
+        
+        <!-- Suspected Drug -->
+        <label>Suspected Drug #1 *</label><br>
+        <input type="text" name="PdlsDrugs[suspect_drug][0]" value="Test Drug" required><br><br>
+        
+        <h2>Optional Fields (sent as empty)</h2>
+        
+        <input type="hidden" name="PDLScard[id]" value="">
+        <input type="hidden" name="PDLScard[message_type]" value="">
+        <input type="hidden" name="PDLScard[message_kind]" value="">
+        <input type="hidden" name="PDLScard[message_date]" value="25.12.2025">
+        <input type="hidden" name="PDLScard[dept_id]" value="">
+        <input type="hidden" name="PDLScard[org_address]" value="">
+        <input type="hidden" name="PDLScard[org_phone]" value="">
+        <input type="hidden" name="PDLScard[org_email]" value="">
+        <input type="hidden" name="PDLScard[source]" value="">
+        <input type="hidden" name="PDLScard[source_name]" value="">
+        <input type="hidden" name="PDLScard[source_phone]" value="">
+        <input type="hidden" name="PDLScard[source_email]" value="">
+        <input type="hidden" name="PDLScard[medrecord_number]" value="">
+        <input type="hidden" name="PDLScard[patient_birthdate]" value="">
+        <input type="hidden" name="PDLScard[patient_growth]" value="">
+        <input type="hidden" name="PDLScard[patient_weight]" value="">
+        <input type="hidden" name="PDLScard[additional_information_patient]" value="">
+        <input type="hidden" name="PDLScard[patient_nation]" value="">
+        <input type="hidden" name="PDLScard[diagnosis_secondary]" value="">
+        <input type="hidden" name="PDLScard[pregnancy]" value="">
+        <input type="hidden" name="PDLScard[last_menstrual_date]" value="">
+        <input type="hidden" name="PDLScard[due_date]" value="">
+        <input type="hidden" name="PDLScard[fetus_count]" value="">
+        <input type="hidden" name="PDLScard[conceiving_type]" value="">
+        <input type="hidden" name="PDLScard[pregnancy_outcome]" value="">
+        <input type="hidden" name="PDLScard[fact_due_date]" value="">
+        <input type="hidden" name="PDLScard[gestational_date]" value="">
+        <input type="hidden" name="PDLScard[due_type]" value="">
+        <input type="hidden" name="PDLScard[child_weight]" value="">
+        <input type="hidden" name="PDLScard[child_growth]" value="">
+        <input type="hidden" name="PDLScard[child_sex]" value="">
+        <input type="hidden" name="PDLScard[apar_1min]" value="">
+        <input type="hidden" name="PDLScard[apar_5min]" value="">
+        <input type="hidden" name="PDLScard[apar_10min]" value="">
+        
+        <!-- Suspected Drug details -->
+        <input type="hidden" name="PdlsDrugs[suspect_drug_begin_date][0]" value="">
+        <input type="hidden" name="PdlsDrugs[suspect_drug_end_date][0]" value="">
+        <input type="hidden" name="PdlsDrugs[suspect_drug_use_method][0]" value="">
+        <input type="hidden" name="PdlsDrugs[suspect_drug_description][0]" value="">
+        <input type="hidden" name="PdlsDrugs[suspect_drug_indications][0]" value="">
+        <input type="hidden" name="PdlsDrugs[suspect_drug_remedy][0]" value="">
+        
+        <!-- Side Effects [0] -->
+        <input type="hidden" name="PDLSsideeffects[side_effect][0]" value="">
+        <input type="hidden" name="PDLSsideeffects[outcome][0]" value="">
+        <input type="hidden" name="PDLSsideeffects[relation][0]" value="">
+        <input type="hidden" name="PDLScard[sideeffects_serious]" value="">
+        <input type="hidden" name="PDLScard[sideeffects_reason]" value="">
+        <input type="hidden" name="PDLScard[sideeffects_causeofdeath]" value="">
+        
+        <!-- Accompanying Drugs [0] -->
+        <input type="hidden" name="PDLSaccompaying[drug][0]" value="">
+        <input type="hidden" name="PDLSaccompaying[dosage_form][0]" value="">
+        <input type="hidden" name="PDLSaccompaying[injection_comment][0]" value="">
+        <input type="hidden" name="PDLSaccompaying[begin_date][0]" value="">
+        <input type="hidden" name="PDLSaccompaying[end_date][0]" value="">
+        <input type="hidden" name="PDLSaccompaying[indications][0]" value="">
+        <input type="hidden" name="PDLSaccompaying[remedy][0]" value="">
+        
+        <!-- Medical History [0] -->
+        <input type="hidden" name="PDLShistory[name][0]" value="">
+        <input type="hidden" name="PDLShistory[continues][0]" value="">
+        
+        <!-- Submit button and complete flag -->
+        <input type="hidden" name="ls" value="Сохранить">
+        <input type="hidden" name="PDLScard[complete_sign]" value="0">
+        <input type="hidden" name="PDLScard[complete_sign]" value="1">
+        
+        <br><br>
+        <button type="submit">Submit Form</button>
+    </form>
+    
+    <hr>
+    <p><strong>Instructions:</strong></p>
+    <ol>
+        <li>Open this file in a web browser</li>
+        <li>Open Developer Tools (F12) → Network tab</li>
+        <li>Click "Submit Form"</li>
+        <li>Check if you get 200/302 or 500 error</li>
+        <li>If 500, you may need to log in to NDDA first</li>
+        <li>If 200/302, compare the request payload with our app's</li>
+    </ol>
+</body>
+</html>
+
