@@ -300,6 +300,11 @@ class KnfService {
       drugMnnNames.addAll(drugInternationalNames);
     }
 
+    // Fallback: if internationalnames is empty, try atcName
+    if (drugMnnNames.isEmpty && drug.atcName != null && drug.atcName!.isNotEmpty) {
+      drugMnnNames.add(drug.atcName!.trim().toLowerCase());
+    }
+
     if (drugMnnNames.isEmpty) {
       return KnfMnnResult.notFound(reason: 'No МНН names available');
     }
@@ -386,5 +391,11 @@ class KnfService {
   KnfEntry? getKnfEntryForDrug(Drug drug) {
     return checkDrug(drug).entry;
   }
+
+  /// Clear the result cache (useful for debugging)
+  void clearCache() {
+    _resultCache.clear();
+  }
 }
+
 

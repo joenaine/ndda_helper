@@ -369,9 +369,10 @@ class _DrugCardState extends State<DrugCard> {
                                     ),
                                   ),
                                 ),
-                                // КНФ МНН badge (only if strict failed)
+                                // КНФ МНН badge (only if strict failed but MNN found)
                                 if (!_knfResult!.strict.inKnf &&
-                                    _knfResult!.mnn != null) ...[
+                                    _knfResult!.mnn != null &&
+                                    _knfResult!.mnn!.inKnfByMnn) ...[
                                   const SizedBox(width: 6),
                                   GestureDetector(
                                     onTap: () => _showInfoBottomSheet(
@@ -383,13 +384,9 @@ class _DrugCardState extends State<DrugCard> {
                                     child: Container(
                                       padding: paddingData,
                                       decoration: BoxDecoration(
-                                        color: _knfResult!.mnn!.inKnfByMnn
-                                            ? (widget.isSelected
-                                                  ? Colors.green.shade300
-                                                  : Colors.green)
-                                            : (widget.isSelected
-                                                  ? Colors.red.shade400
-                                                  : Colors.red),
+                                        color: widget.isSelected
+                                            ? Colors.green.shade300
+                                            : Colors.green,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
