@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dio_helper.dart';
 
 class NddaAuthService {
@@ -7,6 +8,10 @@ class NddaAuthService {
   static const String _yellowCardUrl = '$_baseUrl/register.php/sideeffects/new/lang/ru';
 
   final DioHelper _dioHelper = DioHelper.instance;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+  
+  static const String _usernameKey = 'ndda_username';
+  static const String _passwordKey = 'ndda_password';
 
   // Common headers for NDDA requests
   Map<String, dynamic> get _browserHeaders => {
@@ -26,7 +31,8 @@ class NddaAuthService {
 
   /// Login to NDDA system
   /// Returns true if login successful, false otherwise
-  Future<bool> login(String username, String password) async {
+  /// If saveCredentials is true, credentials will be saved securely
+  Future<bool> login(String username, String password, {bool saveCredentials = true}) async {
     try {
       // Prepare form data
       final formData = {
@@ -57,6 +63,10 @@ class NddaAuthService {
       if (response.statusCode == 302) {
         final location = response.headers.value('location');
         if (location != null && location.contains('/user/profile')) {
+          // Save credentials if requested
+          if (saveCredentials) {
+            await _saveCredentials(username, password);
+          }
           return true;
         }
       }
@@ -66,6 +76,52 @@ class NddaAuthService {
       print('Error during login: $e');
       return false;
     }
+  }
+  
+  /// Save credentials securely
+  Future<void> _saveCredentials(String username, String password) async {
+    try {
+      await _secureStorage.write(key: _usernameKey, value: username);
+      await _secureStorage.write(key: _passwordKey, value: password);
+    } catch (e) {
+      print('Error saving credentials: $e');
+    }
+  }
+  
+  /// Get saved credentials
+  /// Returns a map with 'username' and 'password' keys, or null if not saved
+  Future<Map<String, String>?> getSavedCredentials() async {
+    try {
+      final username = await _secureStorage.read(key: _usernameKey);
+      final password = await _secureStorage.read(key: _passwordKey);
+      
+      if (username != null && password != null) {
+        return {'username': username, 'password': password};
+      }
+      return null;
+    } catch (e) {
+      print('Error reading credentials: $e');
+      return null;
+    }
+  }
+  
+  /// Check if credentials are saved
+  Future<bool> hasSavedCredentials() async {
+    final credentials = await getSavedCredentials();
+    return credentials != null;
+  }
+  
+  /// Auto-login using saved credentials
+  /// Returns true if login successful, false otherwise
+  Future<bool> autoLogin() async {
+    final credentials = await getSavedCredentials();
+    if (credentials == null) return false;
+    
+    return await login(
+      credentials['username']!,
+      credentials['password']!,
+      saveCredentials: false, // Already saved
+    );
   }
 
   /// Submit yellow card (side effects report)
@@ -118,9 +174,20 @@ class NddaAuthService {
     }
   }
 
-  /// Logout by clearing cookies
+  /// Logout by clearing cookies and saved credentials
   Future<void> logout() async {
     await _dioHelper.clearCookies();
+    await clearSavedCredentials();
+  }
+  
+  /// Clear saved credentials
+  Future<void> clearSavedCredentials() async {
+    try {
+      await _secureStorage.delete(key: _usernameKey);
+      await _secureStorage.delete(key: _passwordKey);
+    } catch (e) {
+      print('Error clearing credentials: $e');
+    }
   }
 }
 

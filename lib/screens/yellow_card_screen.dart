@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:nddahelper/widgets/app_hide_keyboard_widget.dart';
 import '../widgets/meddra_selector_dialog.dart';
+import '../widgets/ndda_login_dialog.dart';
 import '../services/yellow_card_service.dart';
 import '../services/yellow_card_debug.dart';
 
@@ -1483,10 +1484,47 @@ class _YellowCardScreenState extends State<YellowCardScreen>
       );
 
       // Submit the form
-      final response = await YellowCardService.submitYellowCard(submissionData);
+      var response = await YellowCardService.submitYellowCard(submissionData);
 
       // Close loading dialog
       if (mounted) Navigator.of(context).pop();
+
+      // If auth error, show login dialog and retry
+      if (!response.success && response.statusCode == 401 && mounted) {
+        final loginSuccess = await showNddaLoginDialog(context);
+
+        if (loginSuccess && mounted) {
+          // Show loading dialog again
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const Center(
+              child: Card(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Повторная отправка...'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          // Retry submission
+          response = await YellowCardService.submitYellowCard(submissionData);
+
+          // Close loading dialog
+          if (mounted) Navigator.of(context).pop();
+        } else if (!loginSuccess) {
+          // User cancelled login, don't proceed
+          return;
+        }
+      }
 
       // Show result
       if (mounted) {
@@ -1494,45 +1532,39 @@ class _YellowCardScreenState extends State<YellowCardScreen>
           context: context,
           builder: (context) => AlertDialog(
             title: Text(response.success ? 'Успешно' : 'Ошибка'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(response.message),
-                  if (!response.success && response.statusCode == 401) ...[
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Пожалуйста, войдите в систему NDDA через раздел Настройки.',
-                      style: TextStyle(fontStyle: FontStyle.italic),
+            content: response.success
+                ? Text(response.message, style: const TextStyle(fontSize: 16))
+                : SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(response.message),
+                        if (response.responseBody != null &&
+                            response.statusCode != 401) ...[
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Детали ошибки:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              response.responseBody!.length > 500
+                                  ? '${response.responseBody!.substring(0, 500)}...'
+                                  : response.responseBody!,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                  ],
-                  if (!response.success &&
-                      response.responseBody != null &&
-                      response.statusCode != 401) ...[
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Детали ошибки:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        response.responseBody!.length > 500
-                            ? '${response.responseBody!.substring(0, 500)}...'
-                            : response.responseBody!,
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+                  ),
             icon: Icon(
               response.success
                   ? Icons.check_circle
@@ -1543,15 +1575,6 @@ class _YellowCardScreenState extends State<YellowCardScreen>
               size: 64,
             ),
             actions: [
-              if (!response.success && response.statusCode == 401)
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop(); // Go back to previous screen
-                    // User can then navigate to Settings to login
-                  },
-                  child: const Text('Перейти к настройкам'),
-                ),
               if (!response.success && response.statusCode != 401)
                 TextButton(
                   onPressed: () {

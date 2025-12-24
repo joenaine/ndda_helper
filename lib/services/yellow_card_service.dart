@@ -27,26 +27,8 @@ class YellowCardService {
         );
       }
       
-      print('=== YELLOW CARD SUBMISSION DEBUG ===');
-      print('URL: $_submitUrl');
-      print('Cookies found: ${cookies.length}');
-      for (var cookie in cookies) {
-        print('  - ${cookie.name}: ${cookie.value.substring(0, cookie.value.length > 20 ? 20 : cookie.value.length)}...');
-      }
-      
       // Build form data
       final formData = _buildFormData(data);
-      
-      print('Data length: ${formData.length}');
-      print('');
-      print('=== FULL FORM DATA (URL decoded) ===');
-      final decoded = Uri.decodeComponent(formData);
-      for (int i = 0; i < decoded.length; i += 500) {
-        final end = (i + 500) < decoded.length ? (i + 500) : decoded.length;
-        print(decoded.substring(i, end));
-      }
-      print('=== END FULL FORM DATA ===');
-      print('');
       
       // Submit using Dio (automatically includes cookies)
       final response = await _dioHelper.post(
@@ -68,16 +50,10 @@ class YellowCardService {
         ),
       );
 
-      print('Response status: ${response.statusCode}');
-      print('Response headers: ${response.headers}');
-      print('Response data length: ${response.data?.toString().length ?? 0}');
-      
-      print('=== END DEBUG ===');
-
       if (response.statusCode == 200 || response.statusCode == 302) {
         return YellowCardSubmissionResponse(
           success: true,
-          message: 'Форма успешно отправлена в NDDA',
+          message: 'Отправлено',
           responseBody: response.data?.toString(),
         );
       } else {
