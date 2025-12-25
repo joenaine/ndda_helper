@@ -116,52 +116,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
 
-          if (!kIsWeb) const SizedBox(height: 16),
+          // if (!kIsWeb) const SizedBox(height: 16),
 
-          const SizedBox(height: 16),
+          // const SizedBox(height: 16),
 
           // NDDA Account Section
-          _buildSection(
-            title: 'NDDA Account',
-            icon: Icons.account_circle,
-            children: [
-              if (_checkingAuth)
-                const ListTile(
-                  leading: CircularProgressIndicator(strokeWidth: 2),
-                  title: Text('Checking login status...'),
-                )
-              else if (_isLoggedIn) ...[
-                ListTile(
-                  leading: const Icon(Icons.check_circle, color: Colors.green),
-                  title: const Text('Logged In'),
-                  subtitle: const Text('Connected to NDDA system'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.logout, color: Colors.red),
-                  title: const Text('Logout'),
-                  subtitle: const Text('Sign out from NDDA'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showLogoutConfirmation(),
-                ),
-              ] else ...[
-                ListTile(
-                  leading: const Icon(Icons.error_outline, color: Colors.orange),
-                  title: const Text('Not Logged In'),
-                  subtitle: const Text('Login required for Yellow Card submission'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.login, color: Colors.blue),
-                  title: const Text('Login to NDDA'),
-                  subtitle: const Text('Enter your NDDA credentials'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _showLoginDialog(),
-                ),
-              ],
-            ],
-          ),
-
+          // _buildSection(
+          //   title: 'NDDA Account',
+          //   icon: Icons.account_circle,
+          //   children: [
+          //     if (_checkingAuth)
+          //       const ListTile(
+          //         leading: CircularProgressIndicator(strokeWidth: 2),
+          //         title: Text('Checking login status...'),
+          //       )
+          //     else if (_isLoggedIn) ...[
+          //       ListTile(
+          //         leading: const Icon(Icons.check_circle, color: Colors.green),
+          //         title: const Text('Logged In'),
+          //         subtitle: const Text('Connected to NDDA system'),
+          //       ),
+          //       const Divider(height: 1),
+          //       ListTile(
+          //         leading: const Icon(Icons.logout, color: Colors.red),
+          //         title: const Text('Logout'),
+          //         subtitle: const Text('Sign out from NDDA'),
+          //         trailing: const Icon(Icons.chevron_right),
+          //         onTap: () => _showLogoutConfirmation(),
+          //       ),
+          //     ] else ...[
+          //       ListTile(
+          //         leading: const Icon(Icons.error_outline, color: Colors.orange),
+          //         title: const Text('Not Logged In'),
+          //         subtitle: const Text('Login required for Yellow Card submission'),
+          //       ),
+          //       const Divider(height: 1),
+          //       ListTile(
+          //         leading: const Icon(Icons.login, color: Colors.blue),
+          //         title: const Text('Login to NDDA'),
+          //         subtitle: const Text('Enter your NDDA credentials'),
+          //         trailing: const Icon(Icons.chevron_right),
+          //         onTap: () => _showLoginDialog(),
+          //       ),
+          //     ],
+          //   ],
+          // ),
           const SizedBox(height: 16),
 
           // App Info Section
@@ -225,7 +224,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _showLoginDialog() async {
     _hapticService.selectionClick();
-    
+
     final usernameController = TextEditingController();
     final passwordController = TextEditingController();
     bool isLoading = false;
@@ -311,7 +310,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Login failed. Please check your credentials.'),
+                                content: Text(
+                                  'Login failed. Please check your credentials.',
+                                ),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -343,7 +344,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _showLogoutConfirmation() async {
     _hapticService.selectionClick();
-    
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -389,7 +390,3 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 }
-
-
-
-

@@ -1,0 +1,10 @@
+{
+  "androidVersion": "1.0.3",
+  "iosVersion": "1.0.3",
+  "isReleased": true,
+  "isRequiredAndroid": false,
+  "isRequiredIos": false,
+  "title": "Обновление доступно",
+  "content": "Доступна новая версия приложения с исправлениями ошибок и улучшениями. Пожалуйста, обновите приложение для продолжения работы."
+}
+

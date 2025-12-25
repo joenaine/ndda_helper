@@ -10,6 +10,7 @@ import '../services/knf_service.dart';
 import '../services/ed_service.dart';
 import '../services/mnn_price_service.dart';
 import '../services/orphan_service.dart';
+import '../services/version_checker.dart';
 import '../widgets/drug_card.dart';
 import 'interaction_checker_screen.dart';
 import 'settings_screen.dart';
@@ -38,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _errorMessage;
   bool _showSelectedOnly = false;
   bool _showScrollToTop = false;
+  bool _hasCheckedVersion = false;
 
   @override
   void initState() {
@@ -45,6 +47,14 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadData();
     _searchController.addListener(_filterDrugs);
     _scrollController.addListener(_onScroll);
+
+    // Check for app updates after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_hasCheckedVersion && mounted) {
+        _hasCheckedVersion = true;
+        VersionChecker.checkForUpdates(context);
+      }
+    });
   }
 
   void _onScroll() {
@@ -272,20 +282,20 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           actions: [
             // Yellow Card Registration button
-            if (!kIsWeb)
-              IconButton(
-                onPressed: () {
-                  _hapticService.selectionClick();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const YellowCardScreen(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.assignment, color: Colors.black),
-                tooltip: 'Yellow Card Registration',
-              ),
+            // if (!kIsWeb)
+            //   IconButton(
+            //     onPressed: () {
+            //       _hapticService.selectionClick();
+            //       Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //           builder: (context) => const YellowCardScreen(),
+            //         ),
+            //       );
+            //     },
+            //     icon: const Icon(Icons.assignment, color: Colors.black),
+            //     tooltip: 'Yellow Card Registration',
+            //   ),
             // Drug Interaction Checker button
             if (!kIsWeb)
               IconButton(
