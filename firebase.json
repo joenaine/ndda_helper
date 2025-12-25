@@ -1,13 +1,1 @@
-{
-  "hosting": [
-    {
-      "target": "drughelperkz",
-      "public": "build/web",
-      "ignore": [
-        "firebase.json",
-        "**/.*",
-        "**/node_modules/**"
-      ]
-    }
-  ]
-}
+{"hosting":[{"target":"drughelperkz","public":"build/web","ignore":["firebase.json","**/.*","**/node_modules/**"]}],"flutter":{"platforms":{"android":{"default":{"projectId":"nddahelper","appId":"1:580206280400:android:18c65f73a128b02f92a8d5","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"nddahelper","appId":"1:580206280400:ios:8785c04d89a9dd3b92a8d5","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"nddahelper","configurations":{"android":"1:580206280400:android:18c65f73a128b02f92a8d5","ios":"1:580206280400:ios:8785c04d89a9dd3b92a8d5","web":"1:580206280400:web:f53fa43bf2d6d5e992a8d5"}}}}}}

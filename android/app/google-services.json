@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "580206280400",
+    "project_id": "nddahelper",
+    "storage_bucket": "nddahelper.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:580206280400:android:18c65f73a128b02f92a8d5",
+        "android_client_info": {
+          "package_name": "com.clinpharm.kz"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD5i2c6nPPUsyknMqnHhTFZrehdECztDJ4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
