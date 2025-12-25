@@ -652,53 +652,87 @@ class _DrugCardState extends State<DrugCard> {
                           // МНН Price (if available)
                           if (_mnnPrice != null && _mnnPrice!.isNotEmpty) ...[
                             const SizedBox(height: 4),
-                            GestureDetector(
-                              onTap: () => _showInfoBottomSheet(
-                                'Предельные цены на МНН',
-                                'Предельные цены на международное непатентованное наименование лекарственного средства в рамках гарантированного объема бесплатной медицинской помощи и (или) в системе обязательного социального медицинского страхования.',
-                                'Приказ Министра здравоохранения Республики Казахстан от 4 сентября 2021 года № ҚР ДСМ-96 «Об утверждении предельных цен на международное непатентованное наименование лекарственного средства или техническую характеристику медицинского изделия в рамках гарантированного объема бесплатной медицинской помощи и (или) в системе обязательного социального медицинского страхования»',
-                                'https://adilet.zan.kz/rus/docs/V2100024253',
-                              ),
-                              child: Container(
-                                padding: paddingData,
-                                decoration: BoxDecoration(
-                                  color: widget.isSelected
-                                      ? Colors.white.withOpacity(0.15)
-                                      : const Color(0xFFF0F9FF),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(
-                                    color: widget.isSelected
-                                        ? Colors.white.withOpacity(0.3)
-                                        : const Color(0xFF3B82F6),
-                                    width: 1,
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => _showPriceFormsBottomSheet(),
+                                    child: Container(
+                                      padding: paddingData,
+                                      decoration: BoxDecoration(
+                                        color: widget.isSelected
+                                            ? Colors.white.withOpacity(0.15)
+                                            : const Color(0xFFF0F9FF),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(
+                                          color: widget.isSelected
+                                              ? Colors.white.withOpacity(0.3)
+                                              : const Color(0xFF3B82F6),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            'Предельная цена: ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w500,
+                                              color: widget.isSelected
+                                                  ? Colors.white.withOpacity(
+                                                      0.9,
+                                                    )
+                                                  : const Color(0xFF1E40AF),
+                                            ),
+                                          ),
+                                          Text(
+                                            '$_mnnPrice ₸',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w700,
+                                              color: widget.isSelected
+                                                  ? Colors.white
+                                                  : const Color(0xFF1E40AF),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Предельная цена: ',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
+                                const SizedBox(width: 8),
+                                GestureDetector(
+                                  onTap: () => _showInfoBottomSheet(
+                                    'Предельные цены на МНН',
+                                    'Предельные цены на международное непатентованное наименование лекарственного средства в рамках гарантированного объема бесплатной медицинской помощи и (или) в системе обязательного социального медицинского страхования.',
+                                    'Приказ Министра здравоохранения Республики Казахстан от 4 сентября 2021 года № ҚР ДСМ-96 «Об утверждении предельных цен на международное непатентованное наименование лекарственного средства или техническую характеристику медицинского изделия в рамках гарантированного объема бесплатной медицинской помощи и (или) в системе обязательного социального медицинского страхования»',
+                                    'https://adilet.zan.kz/rus/docs/V2100024253',
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: widget.isSelected
+                                          ? Colors.white.withOpacity(0.15)
+                                          : const Color(0xFFF0F9FF),
+                                      borderRadius: BorderRadius.circular(4),
+                                      border: Border.all(
                                         color: widget.isSelected
-                                            ? Colors.white.withOpacity(0.9)
-                                            : const Color(0xFF1E40AF),
+                                            ? Colors.white.withOpacity(0.3)
+                                            : const Color(0xFF3B82F6),
+                                        width: 1,
                                       ),
                                     ),
-                                    Text(
-                                      '$_mnnPrice ₸',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: widget.isSelected
-                                            ? Colors.white
-                                            : const Color(0xFF1E40AF),
-                                      ),
+                                    child: Icon(
+                                      Icons.info_outline,
+                                      size: 16,
+                                      color: widget.isSelected
+                                          ? Colors.white
+                                          : const Color(0xFF1E40AF),
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ],
                         ],
@@ -841,6 +875,162 @@ class _DrugCardState extends State<DrugCard> {
         ),
       );
     }
+  }
+
+  void _showPriceFormsBottomSheet() {
+    _hapticService.selectionClick();
+
+    // Get all price forms for this drug
+    _mnnPriceService.loadMnnPriceData();
+    final allForms = _mnnPriceService.getAllPriceFormsForDrug(widget.drug);
+
+    if (allForms.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Формы не найдены'),
+          backgroundColor: Colors.black,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Предельные цены на МНН',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Все формы препарата "${widget.drug.name}"',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  itemCount: allForms.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final form = allForms[index];
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (form.characteristic != null &&
+                              form.characteristic!.isNotEmpty)
+                            Text(
+                              form.characteristic!,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
+                            ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              if (form.unitOfMeasure != null &&
+                                  form.unitOfMeasure!.isNotEmpty)
+                                Text(
+                                  'Ед. изм.: ${form.unitOfMeasure}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              if (form.maxPrice != null &&
+                                  form.maxPrice!.isNotEmpty)
+                                Text(
+                                  '${form.maxPrice} ₸',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF1E40AF),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('Закрыть'),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showInfoBottomSheet(

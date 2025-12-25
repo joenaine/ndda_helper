@@ -282,4 +282,88 @@ class MnnPriceService {
     final entry = getPriceForDrug(drug);
     return entry?.priceAsDouble;
   }
+
+  /// Get all price forms for a drug (all entries with prices for this МНН or ATC code)
+  List<MnnPriceEntry> getAllPriceFormsForDrug(Drug drug) {
+    if (_priceData == null || _priceData!.isEmpty) {
+      return [];
+    }
+
+    // Ensure indexes are built
+    if (!_indexesBuilt) {
+      _buildIndexes();
+    }
+
+    final Set<MnnPriceEntry> allEntries = {};
+    final drugAtcCode = drug.code?.trim() ?? '';
+
+    // Priority 1: ATC code (if concrete, not just a group)
+    // If drug has ATC code, get all forms with this ATC code
+    if (drugAtcCode.isNotEmpty &&
+        _atcIndex != null &&
+        _hasConcreteDrug(drugAtcCode)) {
+      final entries = _atcIndex![drugAtcCode];
+      if (entries != null && entries.isNotEmpty) {
+        // Add all entries with this ATC code
+        allEntries.addAll(entries);
+      }
+    }
+
+    // Priority 2: МНН matching (add all matching entries)
+    if (_mnnIndex != null && _mnnIndex!.isNotEmpty) {
+      final List<String> drugMnnNames = [];
+      if (drug.internationalnames != null &&
+          drug.internationalnames!.isNotEmpty) {
+        final drugInternationalNames = drug.internationalnames!
+            .split(',')
+            .map((name) => name.trim().toLowerCase())
+            .where((name) => name.isNotEmpty)
+            .toList();
+        drugMnnNames.addAll(drugInternationalNames);
+      }
+
+      for (final drugMnnName in drugMnnNames) {
+        final normalized = _normalizeString(drugMnnName);
+
+        // Try exact match first
+        final entries = _mnnIndex![normalized];
+        if (entries != null && entries.isNotEmpty) {
+          allEntries.addAll(entries);
+        }
+
+        // Try to extract base МНН (remove common suffixes)
+        final baseMnn = _extractBaseMnn(normalized);
+        if (baseMnn != normalized && baseMnn.length >= 4) {
+          final baseEntries = _mnnIndex![baseMnn];
+          if (baseEntries != null && baseEntries.isNotEmpty) {
+            allEntries.addAll(baseEntries);
+          }
+        }
+
+        // Try partial match: check if any МНН in index matches base МНН
+        if (normalized.length >= 4) {
+          final baseMnnForSearch = _extractBaseMnn(normalized);
+          for (final entry in _mnnIndex!.entries) {
+            final priceMnnNormalized = entry.key;
+            final priceBaseMnn = _extractBaseMnn(priceMnnNormalized);
+            // Check if base МНН match
+            if (baseMnnForSearch == priceBaseMnn &&
+                baseMnnForSearch.length >= 4) {
+              allEntries.addAll(entry.value);
+            }
+          }
+        }
+      }
+    }
+
+    // Remove duplicates and return as list, sorted by characteristic
+    final uniqueEntries = allEntries.toList();
+    uniqueEntries.sort((a, b) {
+      final charA = a.characteristic ?? '';
+      final charB = b.characteristic ?? '';
+      return charA.compareTo(charB);
+    });
+
+    return uniqueEntries;
+  }
 }
