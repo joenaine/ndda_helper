@@ -176,10 +176,13 @@ class _DrugCardState extends State<DrugCard> {
 
     try {
       _mnnPriceService.loadMnnPriceData(); // Now instant, no async needed!
-      final priceString = _mnnPriceService.getPriceStringForDrug(widget.drug);
+      // Use average price instead of single price
+      final averagePriceString = _mnnPriceService.getAveragePriceStringForDrug(
+        widget.drug,
+      );
       if (mounted) {
         setState(() {
-          _mnnPrice = priceString;
+          _mnnPrice = averagePriceString;
           _isCheckingPrice = false;
         });
       }
@@ -652,87 +655,80 @@ class _DrugCardState extends State<DrugCard> {
                           // МНН Price (if available)
                           if (_mnnPrice != null && _mnnPrice!.isNotEmpty) ...[
                             const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: GestureDetector(
-                                    onTap: () => _showPriceFormsBottomSheet(),
-                                    child: Container(
-                                      padding: paddingData,
-                                      decoration: BoxDecoration(
-                                        color: widget.isSelected
-                                            ? Colors.white.withOpacity(0.15)
-                                            : const Color(0xFFF0F9FF),
-                                        borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(
-                                          color: widget.isSelected
-                                              ? Colors.white.withOpacity(0.3)
-                                              : const Color(0xFF3B82F6),
-                                          width: 1,
+                            SizedBox(
+                              width: 230,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        _hapticService.selectionClick();
+                                        _showPriceFormsBottomSheet();
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
                                         ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            'Предельная цена: ',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
+                                        decoration: BoxDecoration(
+                                          color: widget.isSelected
+                                              ? Colors.white.withOpacity(0.15)
+                                              : const Color(0xFFF0F9FF),
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                          border: Border.all(
+                                            color: widget.isSelected
+                                                ? Colors.white.withOpacity(0.3)
+                                                : const Color(0xFF3B82F6),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              'Предельная цена: ',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                                color: widget.isSelected
+                                                    ? Colors.white.withOpacity(
+                                                        0.9,
+                                                      )
+                                                    : const Color(0xFF1E40AF),
+                                              ),
+                                            ),
+                                            Text(
+                                              '~$_mnnPrice ₸',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                color: widget.isSelected
+                                                    ? Colors.white
+                                                    : const Color(0xFF1E40AF),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              Icons.keyboard_arrow_down_rounded,
+                                              size: 18,
                                               color: widget.isSelected
                                                   ? Colors.white.withOpacity(
-                                                      0.9,
+                                                      0.8,
                                                     )
                                                   : const Color(0xFF1E40AF),
                                             ),
-                                          ),
-                                          Text(
-                                            '$_mnnPrice ₸',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                              color: widget.isSelected
-                                                  ? Colors.white
-                                                  : const Color(0xFF1E40AF),
-                                            ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                GestureDetector(
-                                  onTap: () => _showInfoBottomSheet(
-                                    'Предельные цены на МНН',
-                                    'Предельные цены на международное непатентованное наименование лекарственного средства в рамках гарантированного объема бесплатной медицинской помощи и (или) в системе обязательного социального медицинского страхования.',
-                                    'Приказ Министра здравоохранения Республики Казахстан от 4 сентября 2021 года № ҚР ДСМ-96 «Об утверждении предельных цен на международное непатентованное наименование лекарственного средства или техническую характеристику медицинского изделия в рамках гарантированного объема бесплатной медицинской помощи и (или) в системе обязательного социального медицинского страхования»',
-                                    'https://adilet.zan.kz/rus/docs/V2100024253',
-                                  ),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: widget.isSelected
-                                          ? Colors.white.withOpacity(0.15)
-                                          : const Color(0xFFF0F9FF),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(
-                                        color: widget.isSelected
-                                            ? Colors.white.withOpacity(0.3)
-                                            : const Color(0xFF3B82F6),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Icon(
-                                      Icons.info_outline,
-                                      size: 16,
-                                      color: widget.isSelected
-                                          ? Colors.white
-                                          : const Color(0xFF1E40AF),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ],
                         ],
@@ -912,13 +908,46 @@ class _DrugCardState extends State<DrugCard> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0),
+                    child: Icon(
+                      Icons.info_outline,
+                      size: 26,
+                      color: Colors.transparent,
+                    ),
+                  ),
+
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16.0, top: 4),
+                    child: GestureDetector(
+                      onTap: () {
+                        _hapticService.selectionClick();
+                        _showInfoBottomSheet(
+                          'Предельные цены на МНН',
+                          'Предельные цены на международное непатентованное наименование лекарственного средства в рамках гарантированного объема бесплатной медицинской помощи и (или) в системе обязательного социального медицинского страхования.',
+                          'Приказ Министра здравоохранения Республики Казахстан от 4 сентября 2021 года № ҚР ДСМ-96 «Об утверждении предельных цен на международное непатентованное наименование лекарственного средства или техническую характеристику медицинского изделия в рамках гарантированного объема бесплатной медицинской помощи и (или) в системе обязательного социального медицинского страхования»',
+                          'https://adilet.zan.kz/rus/docs/V2100024253',
+                        );
+                      },
+                      child: Icon(
+                        Icons.info_outline,
+                        size: 26,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
               Padding(

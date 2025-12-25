@@ -366,4 +366,41 @@ class MnnPriceService {
 
     return uniqueEntries;
   }
+
+  /// Get average price for a drug (from all forms)
+  String? getAveragePriceStringForDrug(Drug drug) {
+    final allForms = getAllPriceFormsForDrug(drug);
+    if (allForms.isEmpty) {
+      return null;
+    }
+
+    final prices = allForms
+        .map((form) => form.priceAsDouble)
+        .where((price) => price != null)
+        .cast<double>()
+        .toList();
+
+    if (prices.isEmpty) {
+      return null;
+    }
+
+    final average = prices.reduce((a, b) => a + b) / prices.length;
+
+    // Format as string with 2 decimal places, using comma as decimal separator
+    // Match the format used in the data (e.g., "1 606,33" or "46,42")
+    final formatted = average.toStringAsFixed(2).replaceAll('.', ',');
+
+    // Add space as thousands separator if needed
+    final parts = formatted.split(',');
+    if (parts[0].length > 3) {
+      final integerPart = parts[0];
+      // Add spaces every 3 digits from right to left
+      final reversed = integerPart.split('').reversed.join();
+      final withSpaces = reversed
+          .replaceAllMapped(RegExp(r'.{3}'), (match) => '${match.group(0)} ')
+          .trim();
+      return '${withSpaces.split('').reversed.join()},${parts[1]}';
+    }
+    return formatted;
+  }
 }
