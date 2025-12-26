@@ -10,11 +10,29 @@ import 'screens/yellow_card_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Initialize Firebase with error handling
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    // Log error but continue - app can work without Firebase
+    if (kDebugMode) {
+      print('Firebase initialization error: $e');
+    }
+  }
+
   // Skip Hive initialization on web as it can cause performance issues
   if (!kIsWeb) {
-    await Hive.initFlutter();
+    try {
+      await Hive.initFlutter();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Hive initialization error: $e');
+      }
+    }
   }
+
   runApp(const MyApp());
 }
 

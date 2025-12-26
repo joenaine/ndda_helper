@@ -1,1 +1,76 @@
-{"hosting":[{"target":"drughelperkz","public":"build/web","ignore":["firebase.json","**/.*","**/node_modules/**"]}],"flutter":{"platforms":{"android":{"default":{"projectId":"nddahelper","appId":"1:580206280400:android:18c65f73a128b02f92a8d5","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"nddahelper","appId":"1:580206280400:ios:8785c04d89a9dd3b92a8d5","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"nddahelper","configurations":{"android":"1:580206280400:android:18c65f73a128b02f92a8d5","ios":"1:580206280400:ios:8785c04d89a9dd3b92a8d5","web":"1:580206280400:web:f53fa43bf2d6d5e992a8d5"}}}}}}
+{
+  "hosting": [
+    {
+      "target": "drughelperkz",
+      "public": "build/web",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.@(js|css|wasm|woff|woff2|ttf|otf)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
+        },
+        {
+          "source": "**",
+          "headers": [
+            {
+              "key": "X-Content-Type-Options",
+              "value": "nosniff"
+            },
+            {
+              "key": "X-Frame-Options",
+              "value": "DENY"
+            },
+            {
+              "key": "X-XSS-Protection",
+              "value": "1; mode=block"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "nddahelper",
+          "appId": "1:580206280400:android:18c65f73a128b02f92a8d5",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "nddahelper",
+          "appId": "1:580206280400:ios:8785c04d89a9dd3b92a8d5",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "nddahelper",
+          "configurations": {
+            "android": "1:580206280400:android:18c65f73a128b02f92a8d5",
+            "ios": "1:580206280400:ios:8785c04d89a9dd3b92a8d5",
+            "web": "1:580206280400:web:f53fa43bf2d6d5e992a8d5"
+          }
+        }
+      }
+    }
+  }
+}

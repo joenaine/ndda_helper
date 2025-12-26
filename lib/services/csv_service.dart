@@ -59,7 +59,7 @@ class CsvService {
         'АЛО',
         'ЕД',
         'ОРФАН',
-        'Предельная цена (₸)',
+        'Формы и цены МНН',
         'OHLP Download Link',
       ],
     ];
@@ -89,8 +89,20 @@ class CsvService {
       final isOrphan = _orphanService.isDrugOrphan(drug);
       final orphanStatus = isOrphan ? 'Да' : 'Нет';
       
-      // Get МНН price
-      final mnnPrice = _mnnPriceService.getPriceStringForDrug(drug);
+      // Get all price forms and format them
+      final allForms = _mnnPriceService.getAllPriceFormsForDrug(drug);
+      final formsAndPrices = allForms.map((form) {
+        final characteristic = form.characteristic ?? '';
+        final price = form.maxPrice ?? '';
+        final unit = form.unitOfMeasure ?? '';
+        if (characteristic.isNotEmpty && price.isNotEmpty) {
+          if (unit.isNotEmpty) {
+            return '$characteristic ($unit): $price ₸';
+          }
+          return '$characteristic: $price ₸';
+        }
+        return '';
+      }).where((item) => item.isNotEmpty).join(',\n');
       
       rows.add([
         drug.id,
@@ -115,7 +127,7 @@ class CsvService {
         aloStatus,
         edStatus,
         orphanStatus,
-        mnnPrice ?? '',
+        formsAndPrices,
         ohlpLink,
       ]);
     }
