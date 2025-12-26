@@ -12,9 +12,9 @@ import '../services/mnn_price_service.dart';
 import '../services/orphan_service.dart';
 import '../services/version_checker.dart';
 import '../widgets/drug_card.dart';
+import 'account_screen.dart';
 import 'interaction_checker_screen.dart';
 import 'settings_screen.dart';
-import 'yellow_card_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -307,6 +307,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 icon: const Icon(Icons.medication_liquid, color: Colors.black),
                 tooltip: 'Drug Interaction Checker',
+              ),
+            // Account/UpToDate button
+            if (!kIsWeb)
+              IconButton(
+                onPressed: () {
+                  _hapticService.selectionClick();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AccountScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.account_circle, color: Colors.black),
+                tooltip: 'UpToDate Account',
               ),
             // Settings button (hidden on web)
             if (!kIsWeb)
