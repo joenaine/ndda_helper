@@ -27,9 +27,6 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
     try {
       final authUrl = await _authService.getAuthorizationUrl();
 
-      // Check if we have saved credentials for auto-login
-      final savedCredentials = await _authService.getSavedCredentials();
-
       final controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setNavigationDelegate(
@@ -44,65 +41,43 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
                 setState(() => _isLoading = false);
               }
 
-              // Auto-fill credentials if on login page
-              if (savedCredentials != null && url.contains('dispatcher.libook.xyz/login')) {
+              // Auto-fill and submit credentials if on login page
+              if (url.contains('dispatcher.libook.xyz/login')) {
                 print('🔐 Auto-filling login credentials...');
                 await Future.delayed(const Duration(milliseconds: 500));
                 
                 try {
-                  // Escape any special characters in credentials for JavaScript
-                  final email = savedCredentials['email']!.replaceAll("'", "\\'");
-                  final password = savedCredentials['password']!.replaceAll("'", "\\'");
+                  // Hardcoded credentials for automatic login
+                  const email = 'joenaine10@gmail.com';
+                  const password = '990325Jan#';
                   
                   await _controller!.runJavaScript('''
-                    const emailInput = document.querySelector('input[name="username"], input[type="email"]');
-                    const passwordInput = document.querySelector('input[name="password"], input[type="password"]');
-                    const submitButton = document.querySelector('button[type="submit"], input[type="submit"]');
-                    
-                    if (emailInput && passwordInput) {
-                      emailInput.value = '$email';
-                      passwordInput.value = '$password';
-                      console.log('✅ Credentials filled');
+                    (function() {
+                      if (window.flutterAutoLoginDone) return;
+                      window.flutterAutoLoginDone = true;
                       
-                      // Auto-submit the form
-                      if (submitButton) {
-                        setTimeout(() => {
-                          submitButton.click();
-                          console.log('✅ Form submitted');
-                        }, 500);
+                      const emailInput = document.querySelector('input[name="username"], input[type="email"]');
+                      const passwordInput = document.querySelector('input[name="password"], input[type="password"]');
+                      const submitButton = document.querySelector('button[type="submit"], input[type="submit"]');
+                      
+                      if (emailInput && passwordInput) {
+                        emailInput.value = '$email';
+                        passwordInput.value = '$password';
+                        console.log('✅ Credentials auto-filled');
+                        
+                        // Auto-submit the form
+                        if (submitButton) {
+                          setTimeout(() => {
+                            submitButton.click();
+                            console.log('✅ Form auto-submitted');
+                          }, 500);
+                        }
                       }
-                    }
+                    })();
                   ''');
-                  print('✅ Auto-login submitted');
+                  print('✅ Auto-login triggered with hardcoded credentials');
                 } catch (e) {
                   print('⚠️ Could not auto-fill: $e');
-                }
-              } else if (url.contains('dispatcher.libook.xyz/login') && savedCredentials == null) {
-                // First time login - inject script to capture credentials on submit
-                print('📝 Injecting credential capture script...');
-                await Future.delayed(const Duration(milliseconds: 500));
-                
-                try {
-                  await _controller!.runJavaScript('''
-                    const form = document.querySelector('form');
-                    if (form && !form.dataset.listenerAdded) {
-                      form.dataset.listenerAdded = 'true';
-                      form.addEventListener('submit', (e) => {
-                        const emailInput = form.querySelector('input[name="username"], input[type="email"]');
-                        const passwordInput = form.querySelector('input[name="password"], input[type="password"]');
-                        
-                        if (emailInput && passwordInput) {
-                          window.flutterCredentials = {
-                            email: emailInput.value,
-                            password: passwordInput.value
-                          };
-                          console.log('✅ Credentials captured for saving');
-                        }
-                      });
-                    }
-                  ''');
-                } catch (e) {
-                  print('⚠️ Could not inject capture script: $e');
                 }
               }
             },
