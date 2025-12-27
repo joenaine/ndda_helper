@@ -193,19 +193,11 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
         // Store the session data
         await _authService.storeUserData(sessionData);
 
-        // Extract and store cookies for future HTTP requests
-        try {
-          final cookiesJs = await _controller!.runJavaScriptReturningResult(
-            'document.cookie',
-          );
-          final cleanCookies = cookiesJs.toString().replaceAll('"', '');
-          if (cleanCookies.isNotEmpty) {
-            print('Storing cookies: $cleanCookies');
-            await _authService.storeSessionCookies(cleanCookies);
-          }
-        } catch (e) {
-          print('Warning: Could not extract cookies: $e');
-        }
+        // Note: We cannot extract HttpOnly cookies (__Secure-next-auth.session-token)
+        // from JavaScript. These cookies will remain in the WebView's cookie store.
+        // For API calls, we'll need to use the WebView's JavaScript context.
+        print('✅ Session authenticated successfully');
+        print('⚠️ Note: Using WebView cookie store for API calls');
 
         if (!mounted) return;
         

@@ -195,6 +195,8 @@ class LibookAuthService {
   Future<Map<String, String>> getAuthHeaders() async {
     final sessionToken = await _storage.read(key: _keySessionToken);
 
+    print('🍪 Retrieved session token: ${sessionToken ?? "null"}');
+
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -202,6 +204,9 @@ class LibookAuthService {
 
     if (sessionToken != null) {
       headers['Cookie'] = sessionToken;
+      print('✅ Added Cookie header: $sessionToken');
+    } else {
+      print('⚠️ No session token found!');
     }
 
     return headers;
