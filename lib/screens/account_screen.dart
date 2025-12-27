@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../services/libook_auth_service.dart';
 import '../models/libook_user.dart';
 import 'libook_login_screen.dart';
+import 'uptodate_screen.dart';
 
 class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
@@ -241,6 +242,28 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
         ),
         const SizedBox(height: 16),
+        // Open UpToDate button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const UpToDateScreen(),
+                ),
+              );
+            },
+            icon: const Icon(Icons.library_books),
+            label: const Text('Open UpToDate'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Logout button
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
