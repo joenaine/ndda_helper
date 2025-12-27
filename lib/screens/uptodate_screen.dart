@@ -254,59 +254,91 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
       // Use JavaScript to make the API call within the WebView context
       // This way all cookies (including HttpOnly) are included
       await _apiWebViewController!.runJavaScript('''
-        window.flutterSearchResults = null;
-        window.flutterSearchError = null;
-        (async function() {
-          try {
-            const response = await fetch('https://utd.libook.xyz/api/search/autocomplete?term=${Uri.encodeComponent(query)}', {
-              credentials: 'include',
-              headers: {
-                'Accept': 'application/json',
+        (function() {
+          console.log('🔍 Starting search for: ${Uri.encodeComponent(query)}');
+          window.flutterSearchResults = null;
+          window.flutterSearchError = null;
+          
+          (async function() {
+            try {
+              console.log('📡 Making fetch request...');
+              const response = await fetch('https://utd.libook.xyz/api/search/autocomplete?term=${Uri.encodeComponent(query)}', {
+                credentials: 'include',
+                headers: {
+                  'Accept': 'application/json',
+                }
+              });
+              
+              console.log('📊 Response status:', response.status);
+              const text = await response.text();
+              console.log('📄 Response text length:', text.length);
+              console.log('📄 Response preview:', text.substring(0, 100));
+              
+              // Check if response is HTML (session expired)
+              if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+                console.error('❌ Session expired - got HTML instead of JSON');
+                window.flutterSearchError = 'SESSION_EXPIRED';
+                window.flutterSearchResults = '[]';
+                return;
               }
-            });
-            const text = await response.text();
-            
-            // Check if response is HTML (session expired)
-            if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
-              console.error('Session expired - got HTML instead of JSON');
-              window.flutterSearchError = 'SESSION_EXPIRED';
+              
+              const data = JSON.parse(text);
+              window.flutterSearchResults = JSON.stringify(data);
+              console.log('✅ Search got ' + data.length + ' results');
+              console.log('✅ Stored in window.flutterSearchResults');
+            } catch (e) {
+              console.error('❌ Search error:', e);
+              console.error('❌ Error details:', e.message);
+              window.flutterSearchError = e.toString();
               window.flutterSearchResults = '[]';
-              return;
             }
-            
-            const data = JSON.parse(text);
-            window.flutterSearchResults = JSON.stringify(data);
-            console.log('Search got ' + data.length + ' results');
-          } catch (e) {
-            console.error('Search error:', e);
-            window.flutterSearchError = e.toString();
-            window.flutterSearchResults = '[]';
-          }
+          })();
         })();
       ''');
+      
+      // Give JavaScript a moment to start executing
+      await Future.delayed(const Duration(milliseconds: 200));
 
       // Wait for the fetch to complete
       // Poll for results with timeout
       String? resultsJson;
       String? errorMessage;
-      for (int i = 0; i < 20; i++) {
-        await Future.delayed(const Duration(milliseconds: 100));
+      
+      print('⏰ Polling for JavaScript results...');
+      for (int i = 0; i < 30; i++) {
+        await Future.delayed(const Duration(milliseconds: 150));
         
         // Check for errors first
-        final error = await _apiWebViewController!.runJavaScriptReturningResult(
-          'window.flutterSearchError',
-        );
-        if (error.toString() != 'null' && error.toString().contains('SESSION_EXPIRED')) {
-          errorMessage = 'SESSION_EXPIRED';
-          break;
+        try {
+          final error = await _apiWebViewController!.runJavaScriptReturningResult(
+            'typeof window.flutterSearchError !== "undefined" && window.flutterSearchError !== null ? window.flutterSearchError : "NO_ERROR"',
+          );
+          final errorStr = error.toString();
+          print('Poll $i - Error check: $errorStr');
+          
+          if (errorStr != 'NO_ERROR' && errorStr.contains('SESSION_EXPIRED')) {
+            errorMessage = 'SESSION_EXPIRED';
+            break;
+          }
+        } catch (e) {
+          print('⚠️ Error checking error variable: $e');
         }
         
-        final result = await _apiWebViewController!.runJavaScriptReturningResult(
-          'window.flutterSearchResults',
-        );
-        if (result.toString() != 'null') {
-          resultsJson = result.toString();
-          break;
+        // Check for results
+        try {
+          final result = await _apiWebViewController!.runJavaScriptReturningResult(
+            'typeof window.flutterSearchResults !== "undefined" && window.flutterSearchResults !== null ? window.flutterSearchResults : "STILL_LOADING"',
+          );
+          final resultStr = result.toString();
+          print('Poll $i - Result: ${resultStr.length > 50 ? resultStr.substring(0, 50) + "..." : resultStr}');
+          
+          if (resultStr != 'STILL_LOADING' && resultStr != 'null' && resultStr != '<null>') {
+            resultsJson = resultStr;
+            print('✅ Got results on poll attempt $i');
+            break;
+          }
+        } catch (e) {
+          print('⚠️ Error checking results variable: $e');
         }
       }
 

@@ -55,104 +55,6 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
             },
             onPageFinished: (String url) async {
               print('✅ Page finished loading: $url');
-              
-              // Handle NextAuth signin page - click the provider button
-              if (url.contains('utd.libook.xyz/api/auth/signin')) {
-                print('🔘 On signin page, clicking provider button...');
-                await Future.delayed(const Duration(milliseconds: 500));
-                
-                try {
-                  await _controller!.runJavaScript('''
-                    (function() {
-                      console.log('🔍 Looking for signin button...');
-                      
-                      // Try to find and click the Libook provider button
-                      const buttons = document.querySelectorAll('button, a');
-                      console.log('Found buttons:', buttons.length);
-                      
-                      for (let btn of buttons) {
-                        const text = btn.textContent || btn.innerText || '';
-                        console.log('Button text:', text);
-                        if (text.toLowerCase().includes('libook') || text.toLowerCase().includes('sign in')) {
-                          console.log('🎯 Found signin button, clicking...');
-                          btn.click();
-                          return;
-                        }
-                      }
-                      
-                      // If no button found, try form submission
-                      const form = document.querySelector('form');
-                      if (form) {
-                        console.log('📝 Found form, submitting...');
-                        form.submit();
-                      } else {
-                        console.log('❌ No button or form found');
-                      }
-                    })();
-                  ''');
-                  print('✅ Signin button click script injected');
-                } catch (e) {
-                  print('⚠️ Could not click signin button: $e');
-                }
-              }
-              // Auto-fill and submit credentials if on login page (or authorize page with embedded login)
-              else if (url.contains('dispatcher.libook.xyz/login') || url.contains('dispatcher.libook.xyz/revo/authorize')) {
-                print('🔐 Detected login page! Auto-filling credentials...');
-                await Future.delayed(const Duration(milliseconds: 800));
-                
-                try {
-                  // Hardcoded credentials for automatic login
-                  const email = 'joenaine10@gmail.com';
-                  const password = '990325Jan#';
-                  
-                  await _controller!.runJavaScript('''
-                    (function() {
-                      console.log('🔍 Checking for login form...');
-                      
-                      if (window.flutterAutoLoginDone) {
-                        console.log('⚠️ Auto-login already attempted');
-                        return;
-                      }
-                      window.flutterAutoLoginDone = true;
-                      
-                      const emailInput = document.querySelector('input[name="username"], input[type="email"]');
-                      const passwordInput = document.querySelector('input[name="password"], input[type="password"]');
-                      const submitButton = document.querySelector('button[type="submit"], input[type="submit"]');
-                      
-                      console.log('📝 Email input found:', !!emailInput);
-                      console.log('🔒 Password input found:', !!passwordInput);
-                      console.log('🔘 Submit button found:', !!submitButton);
-                      
-                      if (emailInput && passwordInput) {
-                        emailInput.value = '$email';
-                        passwordInput.value = '$password';
-                        console.log('✅ Credentials auto-filled');
-                        
-                        // Auto-submit the form
-                        if (submitButton) {
-                          setTimeout(() => {
-                            console.log('🚀 Clicking submit button...');
-                            submitButton.click();
-                          }, 300);
-                        } else {
-                          console.log('⚠️ No submit button, trying form submit...');
-                          const form = document.querySelector('form');
-                          if (form) {
-                            setTimeout(() => form.submit(), 300);
-                          }
-                        }
-                      } else {
-                        console.log('❌ Could not find login form inputs');
-                      }
-                    })();
-                  ''');
-                  print('✅ Auto-login script injected');
-                } catch (e) {
-                  print('⚠️ Could not auto-fill: $e');
-                }
-              } else {
-                print('ℹ️ Not a login page, skipping auto-fill');
-              }
             },
             onNavigationRequest: (NavigationRequest request) {
               print('Navigation to: ${request.url}');
@@ -160,12 +62,124 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
               // We'll detect success on page finish
               return NavigationDecision.navigate;
             },
-            onUrlChange: (UrlChange change) {
+            onUrlChange: (UrlChange change) async {
               if (change.url != null) {
                 print('URL changed to: ${change.url}');
+                
+                // Handle NextAuth signin page - auto-click provider
+                if (change.url!.contains('utd.libook.xyz/api/auth/signin')) {
+                  print('🔘 On signin page, auto-clicking provider...');
+                  await Future.delayed(const Duration(milliseconds: 800));
+                  
+                  try {
+                    await _controller?.runJavaScript('''
+                      (function() {
+                        if (window.flutterSigninClicked) {
+                          console.log('⚠️ Signin already clicked');
+                          return;
+                        }
+                        window.flutterSigninClicked = true;
+                        
+                        console.log('🔍 Looking for signin form/button...');
+                        
+                        // Look for form with action containing libook
+                        const forms = document.querySelectorAll('form');
+                        console.log('Found forms:', forms.length);
+                        
+                        for (let form of forms) {
+                          const action = form.action || '';
+                          console.log('Form action:', action);
+                          if (action.includes('libook') || action.includes('signin')) {
+                            console.log('📝 Found signin form, submitting...');
+                            form.submit();
+                            return;
+                          }
+                        }
+                        
+                        // Try to find button with Libook text
+                        const buttons = document.querySelectorAll('button, a, input[type="submit"]');
+                        console.log('Found buttons:', buttons.length);
+                        
+                        for (let btn of buttons) {
+                          const text = (btn.textContent || btn.innerText || '').toLowerCase();
+                          const value = (btn.value || '').toLowerCase();
+                          console.log('Button text/value:', text || value);
+                          
+                          if (text.includes('libook') || value.includes('libook') || 
+                              text.includes('sign in') || value.includes('sign in')) {
+                            console.log('🎯 Found button, clicking...');
+                            btn.click();
+                            return;
+                          }
+                        }
+                        
+                        console.log('⚠️ No form or button found, waiting for manual navigation...');
+                      })();
+                    ''');
+                    print('✅ Auto-click script executed');
+                  } catch (e) {
+                    print('⚠️ Could not execute auto-click: $e');
+                  }
+                }
+                // Handle Django login or OAuth authorize page
+                else if (change.url!.contains('dispatcher.libook.xyz/login') || 
+                         change.url!.contains('dispatcher.libook.xyz/revo/authorize')) {
+                  print('🔐 On login/authorize page, auto-filling credentials...');
+                  await Future.delayed(const Duration(milliseconds: 1000));
+                  
+                  try {
+                    await _controller?.runJavaScript('''
+                      (function() {
+                        if (window.flutterAutoLoginDone) {
+                          console.log('⚠️ Auto-login already done');
+                          return;
+                        }
+                        window.flutterAutoLoginDone = true;
+                        
+                        console.log('🔍 Looking for login form...');
+                        
+                        const emailInput = document.querySelector('input[name="username"], input[type="email"], input[id*="username"], input[id*="email"]');
+                        const passwordInput = document.querySelector('input[name="password"], input[type="password"], input[id*="password"]');
+                        
+                        console.log('📝 Email input found:', !!emailInput);
+                        console.log('🔒 Password input found:', !!passwordInput);
+                        
+                        if (emailInput && passwordInput) {
+                          emailInput.value = 'joenaine10@gmail.com';
+                          passwordInput.value = '990325Jan#';
+                          console.log('✅ Credentials filled');
+                          
+                          // Trigger input events
+                          emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+                          emailInput.dispatchEvent(new Event('change', { bubbles: true }));
+                          passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
+                          passwordInput.dispatchEvent(new Event('change', { bubbles: true }));
+                          
+                          // Find and click submit
+                          setTimeout(() => {
+                            const submitBtn = document.querySelector('button[type="submit"], input[type="submit"], button:not([type="button"])');
+                            if (submitBtn) {
+                              console.log('🚀 Clicking submit...');
+                              submitBtn.click();
+                            } else {
+                              console.log('📝 No button, submitting form...');
+                              const form = document.querySelector('form');
+                              if (form) form.submit();
+                            }
+                          }, 500);
+                        } else {
+                          console.log('❌ Login form inputs not found');
+                        }
+                      })();
+                    ''');
+                    print('✅ Auto-login script executed');
+                  } catch (e) {
+                    print('⚠️ Could not execute auto-login: $e');
+                  }
+                }
                 // Check if we've successfully landed on the UpToDate main site
                 // This happens after OAuth completes and all redirects are done
-                if (!_isProcessingCallback &&
+                else if (!_isProcessingCallback &&
                     change.url!.startsWith('https://utd.libook.xyz/') &&
                     !change.url!.contains('/api/auth/') &&
                     !change.url!.contains('signin') &&
