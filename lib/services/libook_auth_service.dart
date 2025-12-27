@@ -18,6 +18,9 @@ class LibookAuthService {
   static const String _keySessionToken = 'libook_session_token';
   static const String _keyUserData = 'libook_user_data';
   static const String _keyCodeVerifier = 'libook_code_verifier';
+  static const String _keySavedEmail = 'libook_saved_email';
+  static const String _keySavedPassword = 'libook_saved_password';
+  static const String _keyAutoLoginEnabled = 'libook_auto_login_enabled';
 
   // PKCE Helper: Generate code verifier
   String _generateCodeVerifier() {
@@ -195,8 +198,6 @@ class LibookAuthService {
   Future<Map<String, String>> getAuthHeaders() async {
     final sessionToken = await _storage.read(key: _keySessionToken);
 
-    print('🍪 Retrieved session token: ${sessionToken ?? "null"}');
-
     final headers = <String, String>{
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -204,12 +205,53 @@ class LibookAuthService {
 
     if (sessionToken != null) {
       headers['Cookie'] = sessionToken;
-      print('✅ Added Cookie header: $sessionToken');
-    } else {
-      print('⚠️ No session token found!');
     }
 
     return headers;
+  }
+
+  // Save credentials for auto-login
+  Future<void> saveCredentials(String email, String password) async {
+    await _storage.write(key: _keySavedEmail, value: email);
+    await _storage.write(key: _keySavedPassword, value: password);
+    await _storage.write(key: _keyAutoLoginEnabled, value: 'true');
+    print('✅ Credentials saved securely');
+  }
+
+  // Get saved credentials
+  Future<Map<String, String>?> getSavedCredentials() async {
+    final email = await _storage.read(key: _keySavedEmail);
+    final password = await _storage.read(key: _keySavedPassword);
+    
+    if (email != null && password != null) {
+      return {'email': email, 'password': password};
+    }
+    return null;
+  }
+
+  // Check if auto-login is enabled
+  Future<bool> isAutoLoginEnabled() async {
+    final enabled = await _storage.read(key: _keyAutoLoginEnabled);
+    return enabled == 'true';
+  }
+
+  // Enable/disable auto-login
+  Future<void> setAutoLoginEnabled(bool enabled) async {
+    await _storage.write(key: _keyAutoLoginEnabled, value: enabled ? 'true' : 'false');
+    if (!enabled) {
+      // Clear saved credentials when disabling
+      await _storage.delete(key: _keySavedEmail);
+      await _storage.delete(key: _keySavedPassword);
+      print('🗑️ Credentials cleared');
+    }
+  }
+
+  // Clear saved credentials
+  Future<void> clearSavedCredentials() async {
+    await _storage.delete(key: _keySavedEmail);
+    await _storage.delete(key: _keySavedPassword);
+    await _storage.delete(key: _keyAutoLoginEnabled);
+    print('🗑️ Saved credentials cleared');
   }
 }
 

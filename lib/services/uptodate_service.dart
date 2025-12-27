@@ -9,38 +9,28 @@ class UpToDateService {
   static const String _baseUrl = 'https://utd.libook.xyz';
 
   // Autocomplete search
+  // NOTE: This method is no longer used - we use WebView JavaScript for authenticated calls
   Future<List<UpToDateSearchResult>> autocompleteSearch(String query) async {
     if (query.isEmpty) return [];
     
     try {
       final headers = await _authService.getAuthHeaders();
       final url = '$_baseUrl/api/search/autocomplete?term=${Uri.encodeComponent(query)}';
-      
-      print('🔍 UpToDate Search: $query');
-      print('🌐 URL: $url');
-      print('📋 Headers: $headers');
 
       final response = await http.get(
         Uri.parse(url),
         headers: headers,
       );
 
-      print('📡 Status Code: ${response.statusCode}');
-      print('📄 Response Body: ${response.body}');
-
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        print('✅ Found ${data.length} results');
         return data
             .map((item) => UpToDateSearchResult.fromJson(item))
             .toList();
-      } else {
-        print('❌ API Error: ${response.statusCode} - ${response.body}');
       }
       return [];
-    } catch (e, stackTrace) {
-      print('❌ Error searching UpToDate: $e');
-      print('Stack trace: $stackTrace');
+    } catch (e) {
+      print('Error searching UpToDate: $e');
       return [];
     }
   }

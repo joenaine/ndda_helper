@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../models/uptodate_search_result.dart';
+import '../services/libook_auth_service.dart';
+import '../services/libook_headless_auth.dart';
+import 'libook_login_screen.dart';
 
 class UpToDateScreen extends StatefulWidget {
   const UpToDateScreen({super.key});
@@ -20,6 +23,7 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
   WebViewController? _contentWebViewController;
   WebViewController? _apiWebViewController; // Hidden WebView for API calls
   bool _isLoadingWebView = false;
+  bool _isInitializingApiWebView = true; // Track initialization state
 
   @override
   void initState() {
@@ -27,12 +31,159 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
     _initApiWebView();
   }
 
-  void _initApiWebView() {
+  Future<void> _initApiWebView() async {
+    print('🌐 Initializing API WebView...');
+    
     // Create a hidden WebView that stays on the UpToDate domain
     // This WebView has all the authentication cookies
-    _apiWebViewController = WebViewController()
+    final controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('https://utd.libook.xyz/'));
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (String url) {
+            print('✅ API WebView loaded: $url');
+            if (mounted) {
+              setState(() {
+                _isInitializingApiWebView = false;
+              });
+            }
+          },
+          onWebResourceError: (WebResourceError error) {
+            print('❌ API WebView error: ${error.description}');
+          },
+        ),
+      );
+    
+    _apiWebViewController = controller;
+    
+    // Load the page and wait for it
+    await controller.loadRequest(Uri.parse('https://utd.libook.xyz/'));
+    
+    // Give it a moment to fully initialize
+    await Future.delayed(const Duration(milliseconds: 500));
+  }
+
+  Future<void> _refreshSession() async {
+    print('🔄 Refreshing session seamlessly...');
+    
+    // Try headless authentication first
+    final authService = LibookAuthService();
+    var credentials = await authService.getSavedCredentials();
+    
+    // If no credentials saved, use hardcoded ones
+    if (credentials == null) {
+      print('📝 No credentials saved, using default credentials...');
+      const defaultEmail = 'joenaine10@gmail.com';
+      const defaultPassword = '990325Jan#';
+      
+      // Save the default credentials for future use
+      await authService.saveCredentials(defaultEmail, defaultPassword);
+      credentials = {'email': defaultEmail, 'password': defaultPassword};
+    }
+    
+    final headlessAuth = LibookHeadlessAuth();
+    final success = await headlessAuth.loginHeadless(
+      credentials['email']!,
+      credentials['password']!,
+    );
+    
+    if (success) {
+      print('✅ Session refreshed seamlessly via headless auth');
+      // Reload the API WebView with fresh cookies
+      await _apiWebViewController?.loadRequest(Uri.parse('https://utd.libook.xyz/'));
+      await Future.delayed(const Duration(seconds: 1));
+      return;
+    }
+    
+    // Fallback to WebView reload if headless failed
+    print('⚠️ Headless auth failed, falling back to WebView reload');
+    await _apiWebViewController?.loadRequest(Uri.parse('https://utd.libook.xyz/'));
+    await Future.delayed(const Duration(seconds: 2));
+    print('⚠️ Session refresh via WebView reload completed');
+  }
+
+  Future<void> _handleSessionExpired() async {
+    if (!mounted) return;
+    
+    print('🚨 Handling expired session...');
+    
+    // Check if auto-login is enabled
+    final authService = LibookAuthService();
+    var credentials = await authService.getSavedCredentials();
+    
+    // If no credentials saved, use hardcoded ones and save them
+    if (credentials == null) {
+      print('📝 No credentials saved, using default credentials...');
+      const defaultEmail = 'joenaine10@gmail.com';
+      const defaultPassword = '990325Jan#';
+      
+      // Save the default credentials
+      await authService.saveCredentials(defaultEmail, defaultPassword);
+      credentials = {'email': defaultEmail, 'password': defaultPassword};
+      
+      print('✅ Default credentials saved for future use');
+    }
+    
+    // Try seamless headless re-authentication WITHOUT showing any UI
+    print('🔄 Attempting seamless headless re-authentication...');
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🔐 Authenticating seamlessly...'),
+          backgroundColor: Colors.blue,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+    
+    final headlessAuth = LibookHeadlessAuth();
+    final success = await headlessAuth.loginHeadless(
+      credentials['email']!,
+      credentials['password']!,
+    );
+    
+    if (success) {
+      // Successfully re-authenticated, refresh the API WebView
+      await _apiWebViewController?.loadRequest(Uri.parse('https://utd.libook.xyz/'));
+      await Future.delayed(const Duration(seconds: 1));
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Logged in seamlessly!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+      return;
+    }
+    
+    // Headless failed, fall back to WebView
+    print('⚠️ Headless auth failed, falling back to WebView login...');
+    if (mounted) {
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => const LibookLoginScreen(),
+          fullscreenDialog: true,
+        ),
+      );
+      
+      if (result == true) {
+        await _refreshSession();
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Re-authentication successful!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -52,8 +203,8 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
     });
   }
 
-  Future<void> _performSearch(String query) async {
-    print('🔎 _performSearch called with: "$query"');
+  Future<void> _performSearch(String query, {bool isRetry = false}) async {
+    print('🔎 _performSearch called with: "$query" (retry: $isRetry)');
     
     if (query.isEmpty) {
       print('⚠️ Query is empty, clearing results');
@@ -62,6 +213,29 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
         _isSearching = false;
       });
       return;
+    }
+
+    // Wait if still initializing
+    if (_isInitializingApiWebView) {
+      print('⏳ API WebView still initializing, waiting...');
+      // Wait up to 3 seconds
+      for (int i = 0; i < 30; i++) {
+        if (!_isInitializingApiWebView) break;
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+      
+      if (_isInitializingApiWebView) {
+        print('❌ API WebView initialization timeout');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Still initializing... Please wait'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
     }
 
     if (_apiWebViewController == null) {
@@ -81,6 +255,7 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
       // This way all cookies (including HttpOnly) are included
       await _apiWebViewController!.runJavaScript('''
         window.flutterSearchResults = null;
+        window.flutterSearchError = null;
         (async function() {
           try {
             const response = await fetch('https://utd.libook.xyz/api/search/autocomplete?term=${Uri.encodeComponent(query)}', {
@@ -89,11 +264,22 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
                 'Accept': 'application/json',
               }
             });
-            const data = await response.json();
+            const text = await response.text();
+            
+            // Check if response is HTML (session expired)
+            if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+              console.error('Session expired - got HTML instead of JSON');
+              window.flutterSearchError = 'SESSION_EXPIRED';
+              window.flutterSearchResults = '[]';
+              return;
+            }
+            
+            const data = JSON.parse(text);
             window.flutterSearchResults = JSON.stringify(data);
             console.log('Search got ' + data.length + ' results');
           } catch (e) {
             console.error('Search error:', e);
+            window.flutterSearchError = e.toString();
             window.flutterSearchResults = '[]';
           }
         })();
@@ -102,14 +288,51 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
       // Wait for the fetch to complete
       // Poll for results with timeout
       String? resultsJson;
+      String? errorMessage;
       for (int i = 0; i < 20; i++) {
         await Future.delayed(const Duration(milliseconds: 100));
+        
+        // Check for errors first
+        final error = await _apiWebViewController!.runJavaScriptReturningResult(
+          'window.flutterSearchError',
+        );
+        if (error.toString() != 'null' && error.toString().contains('SESSION_EXPIRED')) {
+          errorMessage = 'SESSION_EXPIRED';
+          break;
+        }
+        
         final result = await _apiWebViewController!.runJavaScriptReturningResult(
           'window.flutterSearchResults',
         );
         if (result.toString() != 'null') {
           resultsJson = result.toString();
           break;
+        }
+      }
+
+      // Handle session expiry
+      if (errorMessage == 'SESSION_EXPIRED') {
+        print('⚠️ Session expired detected');
+        
+        if (!isRetry) {
+          // Try to refresh session and retry once
+          print('🔄 Attempting to refresh session...');
+          await _refreshSession();
+          
+          // Retry the search
+          return await _performSearch(query, isRetry: true);
+        } else {
+          // Already retried, session is really expired
+          print('❌ Session still expired after refresh');
+          _handleSessionExpired();
+          
+          if (mounted) {
+            setState(() {
+              _searchResults = [];
+              _isSearching = false;
+            });
+          }
+          return;
         }
       }
 
@@ -234,6 +457,23 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         actions: [
+          // Refresh session button
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () async {
+              await _refreshSession();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Session refreshed'),
+                    backgroundColor: Colors.green,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+            tooltip: 'Refresh Session',
+          ),
           if (_selectedResult != null)
             IconButton(
               icon: const Icon(Icons.close),
@@ -244,6 +484,35 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
       ),
       body: Column(
         children: [
+          // Initialization banner
+          if (_isInitializingApiWebView)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: Colors.orange.shade100,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Initializing search engine...',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.orange.shade900,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          
           // Search bar
           Container(
             padding: const EdgeInsets.all(16),

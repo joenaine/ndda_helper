@@ -27,6 +27,9 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
     try {
       final authUrl = await _authService.getAuthorizationUrl();
 
+      // Check if we have saved credentials for auto-login
+      final savedCredentials = await _authService.getSavedCredentials();
+
       final controller = WebViewController()
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setNavigationDelegate(
@@ -36,9 +39,71 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
                 setState(() => _isLoading = true);
               }
             },
-            onPageFinished: (String url) {
+            onPageFinished: (String url) async {
               if (mounted) {
                 setState(() => _isLoading = false);
+              }
+
+              // Auto-fill credentials if on login page
+              if (savedCredentials != null && url.contains('dispatcher.libook.xyz/login')) {
+                print('🔐 Auto-filling login credentials...');
+                await Future.delayed(const Duration(milliseconds: 500));
+                
+                try {
+                  // Escape any special characters in credentials for JavaScript
+                  final email = savedCredentials['email']!.replaceAll("'", "\\'");
+                  final password = savedCredentials['password']!.replaceAll("'", "\\'");
+                  
+                  await _controller!.runJavaScript('''
+                    const emailInput = document.querySelector('input[name="username"], input[type="email"]');
+                    const passwordInput = document.querySelector('input[name="password"], input[type="password"]');
+                    const submitButton = document.querySelector('button[type="submit"], input[type="submit"]');
+                    
+                    if (emailInput && passwordInput) {
+                      emailInput.value = '$email';
+                      passwordInput.value = '$password';
+                      console.log('✅ Credentials filled');
+                      
+                      // Auto-submit the form
+                      if (submitButton) {
+                        setTimeout(() => {
+                          submitButton.click();
+                          console.log('✅ Form submitted');
+                        }, 500);
+                      }
+                    }
+                  ''');
+                  print('✅ Auto-login submitted');
+                } catch (e) {
+                  print('⚠️ Could not auto-fill: $e');
+                }
+              } else if (url.contains('dispatcher.libook.xyz/login') && savedCredentials == null) {
+                // First time login - inject script to capture credentials on submit
+                print('📝 Injecting credential capture script...');
+                await Future.delayed(const Duration(milliseconds: 500));
+                
+                try {
+                  await _controller!.runJavaScript('''
+                    const form = document.querySelector('form');
+                    if (form && !form.dataset.listenerAdded) {
+                      form.dataset.listenerAdded = 'true';
+                      form.addEventListener('submit', (e) => {
+                        const emailInput = form.querySelector('input[name="username"], input[type="email"]');
+                        const passwordInput = form.querySelector('input[name="password"], input[type="password"]');
+                        
+                        if (emailInput && passwordInput) {
+                          window.flutterCredentials = {
+                            email: emailInput.value,
+                            password: passwordInput.value
+                          };
+                          console.log('✅ Credentials captured for saving');
+                        }
+                      });
+                    }
+                  ''');
+                } catch (e) {
+                  print('⚠️ Could not inject capture script: $e');
+                }
               }
             },
             onNavigationRequest: (NavigationRequest request) {
@@ -192,6 +257,29 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
         
         // Store the session data
         await _authService.storeUserData(sessionData);
+
+        // Try to capture and save credentials for auto-login
+        try {
+          final credentialsJs = await _controller!.runJavaScriptReturningResult(
+            'JSON.stringify(window.flutterCredentials || {})',
+          );
+          
+          if (credentialsJs.toString() != '{}') {
+            final cleanJson = credentialsJs.toString().replaceAll('"', '');
+            if (cleanJson != '{}') {
+              final credentials = json.decode(cleanJson);
+              if (credentials['email'] != null && credentials['password'] != null) {
+                await _authService.saveCredentials(
+                  credentials['email'],
+                  credentials['password'],
+                );
+                print('💾 Credentials saved for auto-login');
+              }
+            }
+          }
+        } catch (e) {
+          print('⚠️ Could not save credentials: $e');
+        }
 
         // Note: We cannot extract HttpOnly cookies (__Secure-next-auth.session-token)
         // from JavaScript. These cookies will remain in the WebView's cookie store.

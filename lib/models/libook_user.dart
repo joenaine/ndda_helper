@@ -16,7 +16,8 @@ class LibookUser {
       id: json['sub'].toString(),
       name: json['name'] ?? '',
       email: json['email'] ?? '',
-      groups: (json['groups'] as List?)
+      groups:
+          (json['groups'] as List?)
               ?.map((g) => LibookGroup.fromJson(g))
               .toList() ??
           [],
@@ -107,4 +108,3 @@ class LibookGroup {
     return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
   }
 }
-
