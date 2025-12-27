@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:nddahelper/widgets/app_hide_keyboard_widget.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../models/uptodate_search_result.dart';
 import '../services/libook_auth_service.dart';
@@ -33,7 +34,7 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
 
   Future<void> _initApiWebView() async {
     print('🌐 Initializing API WebView...');
-    
+
     // Create a hidden WebView that stays on the UpToDate domain
     // This WebView has all the authentication cookies
     final controller = WebViewController()
@@ -53,80 +54,84 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
           },
         ),
       );
-    
+
     _apiWebViewController = controller;
-    
+
     // Load the page and wait for it
     await controller.loadRequest(Uri.parse('https://utd.libook.xyz/'));
-    
+
     // Give it a moment to fully initialize
     await Future.delayed(const Duration(milliseconds: 500));
   }
 
   Future<void> _refreshSession() async {
     print('🔄 Refreshing session seamlessly...');
-    
+
     // Try headless authentication first
     final authService = LibookAuthService();
     var credentials = await authService.getSavedCredentials();
-    
+
     // If no credentials saved, use hardcoded ones
     if (credentials == null) {
       print('📝 No credentials saved, using default credentials...');
       const defaultEmail = 'joenaine10@gmail.com';
       const defaultPassword = '990325Jan#';
-      
+
       // Save the default credentials for future use
       await authService.saveCredentials(defaultEmail, defaultPassword);
       credentials = {'email': defaultEmail, 'password': defaultPassword};
     }
-    
+
     final headlessAuth = LibookHeadlessAuth();
     final success = await headlessAuth.loginHeadless(
       credentials['email']!,
       credentials['password']!,
     );
-    
+
     if (success) {
       print('✅ Session refreshed seamlessly via headless auth');
       // Reload the API WebView with fresh cookies
-      await _apiWebViewController?.loadRequest(Uri.parse('https://utd.libook.xyz/'));
+      await _apiWebViewController?.loadRequest(
+        Uri.parse('https://utd.libook.xyz/'),
+      );
       await Future.delayed(const Duration(seconds: 1));
       return;
     }
-    
+
     // Fallback to WebView reload if headless failed
     print('⚠️ Headless auth failed, falling back to WebView reload');
-    await _apiWebViewController?.loadRequest(Uri.parse('https://utd.libook.xyz/'));
+    await _apiWebViewController?.loadRequest(
+      Uri.parse('https://utd.libook.xyz/'),
+    );
     await Future.delayed(const Duration(seconds: 2));
     print('⚠️ Session refresh via WebView reload completed');
   }
 
   Future<void> _handleSessionExpired() async {
     if (!mounted) return;
-    
+
     print('🚨 Handling expired session...');
-    
+
     // Check if auto-login is enabled
     final authService = LibookAuthService();
     var credentials = await authService.getSavedCredentials();
-    
+
     // If no credentials saved, use hardcoded ones and save them
     if (credentials == null) {
       print('📝 No credentials saved, using default credentials...');
       const defaultEmail = 'joenaine10@gmail.com';
       const defaultPassword = '990325Jan#';
-      
+
       // Save the default credentials
       await authService.saveCredentials(defaultEmail, defaultPassword);
       credentials = {'email': defaultEmail, 'password': defaultPassword};
-      
+
       print('✅ Default credentials saved for future use');
     }
-    
+
     // Try seamless headless re-authentication WITHOUT showing any UI
     print('🔄 Attempting seamless headless re-authentication...');
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -136,18 +141,20 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
         ),
       );
     }
-    
+
     final headlessAuth = LibookHeadlessAuth();
     final success = await headlessAuth.loginHeadless(
       credentials['email']!,
       credentials['password']!,
     );
-    
+
     if (success) {
       // Successfully re-authenticated, refresh the API WebView
-      await _apiWebViewController?.loadRequest(Uri.parse('https://utd.libook.xyz/'));
+      await _apiWebViewController?.loadRequest(
+        Uri.parse('https://utd.libook.xyz/'),
+      );
       await Future.delayed(const Duration(seconds: 1));
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -159,7 +166,7 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
       }
       return;
     }
-    
+
     // Headless failed, fall back to WebView
     print('⚠️ Headless auth failed, falling back to WebView login...');
     if (mounted) {
@@ -169,10 +176,10 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
           fullscreenDialog: true,
         ),
       );
-      
+
       if (result == true) {
         await _refreshSession();
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -205,7 +212,7 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
 
   Future<void> _performSearch(String query, {bool isRetry = false}) async {
     print('🔎 _performSearch called with: "$query" (retry: $isRetry)');
-    
+
     if (query.isEmpty) {
       print('⚠️ Query is empty, clearing results');
       setState(() {
@@ -223,7 +230,7 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
         if (!_isInitializingApiWebView) break;
         await Future.delayed(const Duration(milliseconds: 100));
       }
-      
+
       if (_isInitializingApiWebView) {
         print('❌ API WebView initialization timeout');
         if (mounted) {
@@ -295,7 +302,7 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
           })();
         })();
       ''');
-      
+
       // Give JavaScript a moment to start executing
       await Future.delayed(const Duration(milliseconds: 200));
 
@@ -303,11 +310,11 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
       // Poll for results with timeout
       String? resultsJson;
       String? errorMessage;
-      
+
       print('⏰ Polling for JavaScript results...');
       for (int i = 0; i < 30; i++) {
         await Future.delayed(const Duration(milliseconds: 150));
-        
+
         // Check for errors first
         try {
           final error = await _apiWebViewController!.runJavaScriptReturningResult(
@@ -315,7 +322,7 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
           );
           final errorStr = error.toString();
           print('Poll $i - Error check: $errorStr');
-          
+
           if (errorStr != 'NO_ERROR' && errorStr.contains('SESSION_EXPIRED')) {
             errorMessage = 'SESSION_EXPIRED';
             break;
@@ -323,16 +330,20 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
         } catch (e) {
           print('⚠️ Error checking error variable: $e');
         }
-        
+
         // Check for results
         try {
           final result = await _apiWebViewController!.runJavaScriptReturningResult(
             'typeof window.flutterSearchResults !== "undefined" && window.flutterSearchResults !== null ? window.flutterSearchResults : "STILL_LOADING"',
           );
           final resultStr = result.toString();
-          print('Poll $i - Result: ${resultStr.length > 50 ? resultStr.substring(0, 50) + "..." : resultStr}');
-          
-          if (resultStr != 'STILL_LOADING' && resultStr != 'null' && resultStr != '<null>') {
+          print(
+            'Poll $i - Result: ${resultStr.length > 50 ? "${resultStr.substring(0, 50)}..." : resultStr}',
+          );
+
+          if (resultStr != 'STILL_LOADING' &&
+              resultStr != 'null' &&
+              resultStr != '<null>') {
             resultsJson = resultStr;
             print('✅ Got results on poll attempt $i');
             break;
@@ -345,19 +356,19 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
       // Handle session expiry
       if (errorMessage == 'SESSION_EXPIRED') {
         print('⚠️ Session expired detected');
-        
+
         if (!isRetry) {
           // Try to refresh session and retry once
           print('🔄 Attempting to refresh session...');
           await _refreshSession();
-          
+
           // Retry the search
           return await _performSearch(query, isRetry: true);
         } else {
           // Already retried, session is really expired
           print('❌ Session still expired after refresh');
           _handleSessionExpired();
-          
+
           if (mounted) {
             setState(() {
               _searchResults = [];
@@ -376,27 +387,32 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
 
       if (resultsJson != 'null') {
         String jsonString = resultsJson;
-        
+
         // The result is a JSON string wrapped in quotes: "[{...}]"
         // We need to:
         // 1. Remove outer quotes if present
         // 2. Parse the JSON
-        
+
         if (jsonString.startsWith('"') && jsonString.endsWith('"')) {
           // Remove outer quotes
           jsonString = jsonString.substring(1, jsonString.length - 1);
           print('🧹 Removed outer quotes');
         }
-        
+
         // Unescape the backslashes (\")
         jsonString = jsonString.replaceAll(r'\"', '"');
         jsonString = jsonString.replaceAll(r'\\', r'\');
-        
-        print('📄 Clean JSON: ${jsonString.substring(0, jsonString.length > 100 ? 100 : jsonString.length)}...');
-        
+
+        print(
+          '📄 Clean JSON: ${jsonString.substring(0, jsonString.length > 100 ? 100 : jsonString.length)}...',
+        );
+
         final List<dynamic> data = json.decode(jsonString);
         final results = data
-            .map((item) => UpToDateSearchResult.fromJson(item as Map<String, dynamic>))
+            .map(
+              (item) =>
+                  UpToDateSearchResult.fromJson(item as Map<String, dynamic>),
+            )
             .toList();
 
         print('📦 Got ${results.length} results');
@@ -414,7 +430,7 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
     } catch (e, stackTrace) {
       print('❌ Search error: $e');
       print('Stack: $stackTrace');
-      
+
       if (mounted) {
         setState(() {
           _searchResults = [];
@@ -483,115 +499,118 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('UpToDate'),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        actions: [
-          // Refresh session button
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () async {
-              await _refreshSession();
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Session refreshed'),
-                    backgroundColor: Colors.green,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
-            },
-            tooltip: 'Refresh Session',
-          ),
-          if (_selectedResult != null)
+    return AppHideKeyBoardWidget(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('UpToDate'),
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+          actions: [
+            // Refresh session button
             IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: _clearSearch,
-              tooltip: 'Clear',
+              icon: const Icon(Icons.refresh),
+              onPressed: () async {
+                await _refreshSession();
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Session refreshed'),
+                      backgroundColor: Colors.green,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              tooltip: 'Refresh Session',
             ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Initialization banner
-          if (_isInitializingApiWebView)
+            if (_selectedResult != null)
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _clearSearch,
+                tooltip: 'Clear',
+              ),
+          ],
+        ),
+        body: Column(
+          children: [
+            // Initialization banner
+            if (_isInitializingApiWebView)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                color: Colors.orange.shade100,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.orange.shade700,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Initializing search engine...',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.orange.shade900,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Search bar
             Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Colors.orange.shade100,
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.orange.shade700,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Initializing search engine...',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.orange.shade900,
-                      fontWeight: FontWeight.w500,
-                    ),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-            ),
-          
-          // Search bar
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                hintText: 'Search UpToDate...',
-                prefixIcon: const Icon(Icons.search, color: Colors.black54),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.black54),
-                        onPressed: () {
-                          _searchController.clear();
-                          _onSearchChanged('');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.grey.shade100,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+              child: TextField(
+                controller: _searchController,
+                onChanged: _onSearchChanged,
+                decoration: InputDecoration(
+                  hintText: 'Search UpToDate...',
+                  prefixIcon: const Icon(Icons.search, color: Colors.black54),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, color: Colors.black54),
+                          onPressed: () {
+                            _searchController.clear();
+                            _onSearchChanged('');
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.grey.shade100,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Content area
-          Expanded(
-            child: _buildContent(),
-          ),
-        ],
+            // Content area
+            Expanded(child: _buildContent()),
+          ],
+        ),
       ),
     );
   }
@@ -606,9 +625,7 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
             Container(
               color: Colors.white.withOpacity(0.8),
               child: const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.black,
-                ),
+                child: CircularProgressIndicator(color: Colors.black),
               ),
             ),
         ],
@@ -684,9 +701,7 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
     // Show loading indicator
     if (_isSearching) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: Colors.black,
-        ),
+        child: CircularProgressIndicator(color: Colors.black),
       );
     }
 
@@ -695,30 +710,19 @@ class _UpToDateScreenState extends State<UpToDateScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search,
-            size: 64,
-            color: Colors.grey.shade300,
-          ),
+          Icon(Icons.search, size: 64, color: Colors.grey.shade300),
           const SizedBox(height: 16),
           Text(
             'Search for drugs, conditions, or topics',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 8),
           Text(
             'Start typing to see suggestions',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade400,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
           ),
         ],
       ),
     );
   }
 }
-
