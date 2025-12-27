@@ -131,24 +131,38 @@ class _AccountScreenState extends State<AccountScreen> {
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
                 onPressed: _login,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text('Login to UpToDate'),
+                icon: const Icon(Icons.lock_outline, size: 20),
+                label: const Text('Connect to UpToDate'),
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Login will happen automatically',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-                fontStyle: FontStyle.italic,
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 18, color: Colors.grey.shade600),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Secure automatic authentication',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

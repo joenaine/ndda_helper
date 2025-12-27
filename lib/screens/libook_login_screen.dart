@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -13,14 +14,32 @@ class LibookLoginScreen extends StatefulWidget {
 class _LibookLoginScreenState extends State<LibookLoginScreen> {
   final LibookAuthService _authService = LibookAuthService();
   WebViewController? _controller;
-  bool _isLoading = true;
   String? _error;
   bool _isProcessingCallback = false;
+  Timer? _timeoutTimer;
 
   @override
   void initState() {
     super.initState();
     _initWebView();
+    _startTimeout();
+  }
+
+  @override
+  void dispose() {
+    _timeoutTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimeout() {
+    // 45 second timeout for authentication
+    _timeoutTimer = Timer(const Duration(seconds: 45), () {
+      if (!_isProcessingCallback && mounted) {
+        setState(() {
+          _error = 'Login timeout.\n\nThe authentication process took too long.\n\nPlease check your internet connection and try again.';
+        });
+      }
+    });
   }
 
   Future<void> _initWebView() async {
@@ -32,19 +51,54 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
         ..setNavigationDelegate(
           NavigationDelegate(
             onPageStarted: (String url) {
-              if (mounted) {
-                setState(() => _isLoading = true);
-              }
+              print('📄 Page started loading: $url');
             },
             onPageFinished: (String url) async {
-              if (mounted) {
-                setState(() => _isLoading = false);
-              }
-
-              // Auto-fill and submit credentials if on login page
-              if (url.contains('dispatcher.libook.xyz/login')) {
-                print('🔐 Auto-filling login credentials...');
+              print('✅ Page finished loading: $url');
+              
+              // Handle NextAuth signin page - click the provider button
+              if (url.contains('utd.libook.xyz/api/auth/signin')) {
+                print('🔘 On signin page, clicking provider button...');
                 await Future.delayed(const Duration(milliseconds: 500));
+                
+                try {
+                  await _controller!.runJavaScript('''
+                    (function() {
+                      console.log('🔍 Looking for signin button...');
+                      
+                      // Try to find and click the Libook provider button
+                      const buttons = document.querySelectorAll('button, a');
+                      console.log('Found buttons:', buttons.length);
+                      
+                      for (let btn of buttons) {
+                        const text = btn.textContent || btn.innerText || '';
+                        console.log('Button text:', text);
+                        if (text.toLowerCase().includes('libook') || text.toLowerCase().includes('sign in')) {
+                          console.log('🎯 Found signin button, clicking...');
+                          btn.click();
+                          return;
+                        }
+                      }
+                      
+                      // If no button found, try form submission
+                      const form = document.querySelector('form');
+                      if (form) {
+                        console.log('📝 Found form, submitting...');
+                        form.submit();
+                      } else {
+                        console.log('❌ No button or form found');
+                      }
+                    })();
+                  ''');
+                  print('✅ Signin button click script injected');
+                } catch (e) {
+                  print('⚠️ Could not click signin button: $e');
+                }
+              }
+              // Auto-fill and submit credentials if on login page (or authorize page with embedded login)
+              else if (url.contains('dispatcher.libook.xyz/login') || url.contains('dispatcher.libook.xyz/revo/authorize')) {
+                print('🔐 Detected login page! Auto-filling credentials...');
+                await Future.delayed(const Duration(milliseconds: 800));
                 
                 try {
                   // Hardcoded credentials for automatic login
@@ -53,12 +107,21 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
                   
                   await _controller!.runJavaScript('''
                     (function() {
-                      if (window.flutterAutoLoginDone) return;
+                      console.log('🔍 Checking for login form...');
+                      
+                      if (window.flutterAutoLoginDone) {
+                        console.log('⚠️ Auto-login already attempted');
+                        return;
+                      }
                       window.flutterAutoLoginDone = true;
                       
                       const emailInput = document.querySelector('input[name="username"], input[type="email"]');
                       const passwordInput = document.querySelector('input[name="password"], input[type="password"]');
                       const submitButton = document.querySelector('button[type="submit"], input[type="submit"]');
+                      
+                      console.log('📝 Email input found:', !!emailInput);
+                      console.log('🔒 Password input found:', !!passwordInput);
+                      console.log('🔘 Submit button found:', !!submitButton);
                       
                       if (emailInput && passwordInput) {
                         emailInput.value = '$email';
@@ -68,17 +131,27 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
                         // Auto-submit the form
                         if (submitButton) {
                           setTimeout(() => {
+                            console.log('🚀 Clicking submit button...');
                             submitButton.click();
-                            console.log('✅ Form auto-submitted');
-                          }, 500);
+                          }, 300);
+                        } else {
+                          console.log('⚠️ No submit button, trying form submit...');
+                          const form = document.querySelector('form');
+                          if (form) {
+                            setTimeout(() => form.submit(), 300);
+                          }
                         }
+                      } else {
+                        console.log('❌ Could not find login form inputs');
                       }
                     })();
                   ''');
-                  print('✅ Auto-login triggered with hardcoded credentials');
+                  print('✅ Auto-login script injected');
                 } catch (e) {
                   print('⚠️ Could not auto-fill: $e');
                 }
+              } else {
+                print('ℹ️ Not a login page, skipping auto-fill');
               }
             },
             onNavigationRequest: (NavigationRequest request) {
@@ -111,14 +184,12 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
       if (mounted) {
         setState(() {
           _controller = controller;
-          _isLoading = true;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _error = 'Failed to initialize login: $e';
-          _isLoading = false;
         });
       }
     }
@@ -126,10 +197,6 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
 
   Future<void> _handleCallback(String url) async {
     try {
-      if (mounted) {
-        setState(() => _isLoading = true);
-      }
-
       // Wait for page to fully load and JavaScript to be ready
       await Future.delayed(const Duration(milliseconds: 1500));
 
@@ -262,6 +329,9 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
         print('✅ Session authenticated successfully');
         print('⚠️ Note: Using WebView cookie store for API calls');
 
+        // Cancel timeout timer
+        _timeoutTimer?.cancel();
+
         if (!mounted) return;
         
         // Success! Return to account screen
@@ -275,7 +345,6 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
       if (mounted) {
         setState(() {
           _error = 'Authentication error:\n${e.toString()}\n\nPlease try again.';
-          _isLoading = false;
         });
       }
     }
@@ -291,6 +360,15 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
       ),
       body: Stack(
         children: [
+          // Hidden WebView - handles authentication in background
+          if (_controller != null)
+            Opacity(
+              opacity: 0.0, // Completely invisible
+              child: IgnorePointer(
+                child: WebViewWidget(controller: _controller!),
+              ),
+            ),
+          // Full-screen loading overlay
           if (_error != null)
             Center(
               child: Padding(
@@ -322,20 +400,35 @@ class _LibookLoginScreenState extends State<LibookLoginScreen> {
                 ),
               ),
             )
-          else if (_controller != null)
-            WebViewWidget(controller: _controller!)
           else
-            const Center(
-              child: CircularProgressIndicator(
-                color: Colors.black,
-              ),
-            ),
-          if (_isLoading && _controller != null)
             Container(
-              color: Colors.white.withOpacity(0.8),
-              child: const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.black,
+              color: Colors.white,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(
+                      color: Colors.black,
+                      strokeWidth: 3,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Logging in securely...',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Please wait',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
